@@ -1,0 +1,5 @@
+com\example\tecnosserver\TecnosServerApplication.class
+com\example\tecnosserver\exceptions\exception\AppException.class
+com\example\tecnosserver\exceptions\exception\NotFoundException.class
+com\example\tecnosserver\exceptions\exception\AlreadyExistsException.class
+com\example\tecnosserver\exceptions\model\GlobalExceptionHandler.class
