@@ -43,7 +43,7 @@ jobs:
 
       - name: Update and commit app version in docker-compose.yml in other repository
         run: |
-          cd docker-compose-microservices/
+          cd docker-compose-tecnos/
           echo -e "Current ./docker-compose.yaml\n$(cat docker-compose.yaml)"
           sed -i -E 's_(tecnos1999/tecnos-server:)([^"]*)_\1'${{ env.BUILD_NUMBER }}'_' docker-compose.yaml
           echo -e "Updated ./docker-compose.yaml\n$(cat docker-compose.yaml)"
