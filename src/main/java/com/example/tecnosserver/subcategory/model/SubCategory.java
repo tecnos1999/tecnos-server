@@ -1,6 +1,6 @@
-package com.example.tecnosserver.category.model;
-
-import com.example.tecnosserver.subcategory.model.SubCategory;
+package com.example.tecnosserver.subcategory.model;
+import com.example.tecnosserver.products.model.Product;
+import com.example.tecnosserver.category.model.Category;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,24 +9,31 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
-import java.util.List;
 
-@Entity(name = "Category")
-@Table(name = "categories")
+import java.time.LocalDateTime;
+
+@Entity(name = "SubCategory")
+@Table(name = "subcategories")
 @AllArgsConstructor
 @SuperBuilder
 @NoArgsConstructor
 @Data
-public class Category {
+public class SubCategory {
 
     @Id
-    @SequenceGenerator(name = "category_sequence", sequenceName = "category_sequence", allocationSize = 1)
-    @GeneratedValue(generator = "category_sequence", strategy = GenerationType.SEQUENCE)
+    @SequenceGenerator(name = "subcategory_sequence", sequenceName = "subcategory_sequence", allocationSize = 1)
+    @GeneratedValue(generator = "subcategory_sequence", strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @Column(name = "name", nullable = false,unique = true)
     private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @OneToOne(mappedBy = "subCategory", cascade = CascadeType.ALL)
+    private Product product;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -35,8 +42,5 @@ public class Category {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
-
-
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<SubCategory> subCategories;
 }
+
