@@ -1,5 +1,7 @@
 package com.example.tecnosserver.subcategory.service;
 
+import com.example.tecnosserver.category.model.Category;
+import com.example.tecnosserver.category.repo.CategoryRepo;
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.subcategory.model.SubCategory;
@@ -15,22 +17,26 @@ public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
 
     private final SubCategoryRepo subCategoryRepo;
 
-    public SubCategoryCommandServiceImpl(SubCategoryRepo subCategoryRepo) {
+    private final CategoryRepo categoryRepo;
+
+    public SubCategoryCommandServiceImpl(SubCategoryRepo subCategoryRepo, CategoryRepo categoryRepo) {
         this.subCategoryRepo = subCategoryRepo;
+        this.categoryRepo = categoryRepo;
     }
 
     @Override
     public void createSubCategory(String name) {
-
         Optional<SubCategory> subCategory = subCategoryRepo.findSubCategoryByName(name);
-        if(subCategory.isPresent()) {
+        if (subCategory.isPresent()) {
             throw new AlreadyExistsException("Subcategory with name " + name + " already exists");
         }
+
         SubCategory newSubCategory = new SubCategory();
         newSubCategory.setName(name);
-        subCategoryRepo.saveAndFlush(newSubCategory);
 
+        subCategoryRepo.saveAndFlush(newSubCategory);
     }
+
 
     @Override
     public void updateSubCategory(String name, String updatedName) {

@@ -29,7 +29,7 @@ public class SubCategory {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @OneToOne(mappedBy = "subCategory", cascade = CascadeType.ALL)
