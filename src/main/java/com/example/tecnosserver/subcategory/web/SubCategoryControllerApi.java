@@ -14,7 +14,7 @@ import java.util.Optional;
 @CrossOrigin
 @RequestMapping("/server/api/v1/subcategory/")
 @AllArgsConstructor
-public class SubCategoryControllerServer {
+public class SubCategoryControllerApi {
 
     private final SubCategoryCommandServiceImpl subCategoryCommandService;
     private final SubCategoryQueryServiceImpl subCategoryQueryService;

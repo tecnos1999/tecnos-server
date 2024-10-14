@@ -1,5 +1,4 @@
 package com.example.tecnosserver.category.web;
-
 import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.category.service.CategoryCommandServiceImpl;
 import com.example.tecnosserver.category.service.CategoryQueryServiceImpl;
@@ -14,7 +13,7 @@ import java.util.Optional;
 @CrossOrigin
 @RequestMapping("/server/api/v1/category/")
 @AllArgsConstructor
-public class CategoryControllerServer {
+public class CategoryControllerApi {
 
     private final CategoryCommandServiceImpl categoryCommandService;
     private final CategoryQueryServiceImpl categoryQueryService;
@@ -44,4 +43,5 @@ public class CategoryControllerServer {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 }
+
 
