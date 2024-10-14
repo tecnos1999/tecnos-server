@@ -5,10 +5,12 @@ import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 @Service
+@Transactional
 public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
 
     private final SubCategoryRepo subCategoryRepo;

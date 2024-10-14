@@ -30,11 +30,9 @@ public class Product {
     @Column(name="description", nullable = false)
     private String description;
 
-    @Column(name="price", nullable = false)
-    private double price;
 
-    @Column(name="stock", nullable = false)
-    private int stock;
+
+
 
     @Column(name="image", nullable = false)
     private String image;
