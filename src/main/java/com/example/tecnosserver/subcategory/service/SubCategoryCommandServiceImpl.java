@@ -25,7 +25,13 @@ public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
     }
 
     @Override
-    public void createSubCategory(String name) {
+    public void createSubCategory(String name , String category) {
+        Optional<Category> categoryOptional = categoryRepo.findCategoryByName(category);
+        if(categoryOptional.isEmpty()) {
+            throw new NotFoundException("Category with name " + category + " not found");
+        }
+
+
         Optional<SubCategory> subCategory = subCategoryRepo.findSubCategoryByName(name);
         if (subCategory.isPresent()) {
             throw new AlreadyExistsException("Subcategory with name " + name + " already exists");
@@ -33,6 +39,7 @@ public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
 
         SubCategory newSubCategory = new SubCategory();
         newSubCategory.setName(name);
+        newSubCategory.setCategory(categoryOptional.get());
 
         subCategoryRepo.saveAndFlush(newSubCategory);
     }

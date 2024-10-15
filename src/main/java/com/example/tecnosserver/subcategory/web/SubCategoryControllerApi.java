@@ -20,8 +20,8 @@ public class SubCategoryControllerApi {
     private final SubCategoryQueryServiceImpl subCategoryQueryService;
 
     @PostMapping("/create")
-    public ResponseEntity<String> createSubCategory(@RequestParam String name) {
-        subCategoryCommandService.createSubCategory(name);
+    public ResponseEntity<String> createSubCategory(@RequestParam String name, @RequestParam String category) {
+        subCategoryCommandService.createSubCategory(name, category);
         return ResponseEntity.status(HttpStatus.CREATED).body("Subcategory '" + name + "' created successfully.");
     }
 
