@@ -5,6 +5,7 @@ import com.example.tecnosserver.category.repo.CategoryRepo;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -24,5 +25,14 @@ public class CategoryQueryServiceImpl implements CategoryQueryService{
             throw new NotFoundException("Category with name " + name + " not found");
         }
         return category;
+    }
+
+    @Override
+    public Optional<List<Category>> findAllCategories() {
+        List<Category> categories = categoryRepo.findAll();
+        if (categories.isEmpty()) {
+            throw new NotFoundException("No categories found");
+        }
+        return Optional.of(categories);
     }
 }

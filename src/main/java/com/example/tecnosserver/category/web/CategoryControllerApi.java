@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -40,6 +41,13 @@ public class CategoryControllerApi {
     public ResponseEntity<Category> findCategoryByName(@RequestParam String name) {
         Optional<Category> category = categoryQueryService.findCategoryByName(name);
         return category.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    @GetMapping("/findAll")
+    public ResponseEntity<List<Category>> findAllCategories() {
+        Optional<List<Category>> categories = categoryQueryService.findAllCategories();
+        return categories.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 }
