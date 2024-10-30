@@ -1,8 +1,10 @@
 package com.example.tecnosserver.subcategory.model;
+import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.category.model.Category;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,6 +17,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity(name = "SubCategory")
 @Table(name = "subcategories")
@@ -56,7 +59,9 @@ public class SubCategory {
     private LocalDateTime updatedAt;
 
 
-
+    @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<ItemCategory> itemCategories;
 
 
 }

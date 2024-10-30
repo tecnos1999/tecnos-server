@@ -1,0 +1,46 @@
+package com.example.tecnosserver.itemcategory.model;
+
+import com.example.tecnosserver.subcategory.model.SubCategory;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+
+@Entity(name = "ItemCategory")
+@Table(name = "item_categories")
+@AllArgsConstructor
+@SuperBuilder
+@NoArgsConstructor
+@Data
+public class ItemCategory {
+
+    @Id
+    @SequenceGenerator(name = "itemcategory_sequence", sequenceName = "itemcategory_sequence", allocationSize = 1)
+    @GeneratedValue(generator = "itemcategory_sequence", strategy = GenerationType.SEQUENCE)
+    @JsonIgnore
+    private Long id;
+
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "subcategory_id", nullable = false)
+    @JsonBackReference
+    private SubCategory subCategory;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+}
+
