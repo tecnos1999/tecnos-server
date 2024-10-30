@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -41,6 +42,13 @@ public class SubCategoryControllerApi {
     public ResponseEntity<SubCategory> findSubCategoryByName(@RequestParam String name) {
         Optional<SubCategory> subCategory = subCategoryQueryService.findSubCategoryByName(name);
         return subCategory.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<SubCategory>> findAllSubCategories() {
+        Optional<List<SubCategory>> subCategories = subCategoryQueryService.findAllSubCategories();
+        return subCategories.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
 }
