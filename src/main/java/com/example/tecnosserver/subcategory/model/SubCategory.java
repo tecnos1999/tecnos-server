@@ -47,9 +47,6 @@ public class SubCategory {
         return category != null ? category.getName() : null;
     }
 
-    @OneToOne(mappedBy = "subCategory", cascade = CascadeType.ALL)
-    private Product product;
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

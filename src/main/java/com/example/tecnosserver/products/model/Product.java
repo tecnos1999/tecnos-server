@@ -1,5 +1,7 @@
 package com.example.tecnosserver.products.model;
+import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.subcategory.model.SubCategory;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -30,7 +32,6 @@ public class Product {
     @Column(name="description", nullable = false)
     private String description;
 
-    
 
     @Column(name="image", nullable = false)
     private String image;
@@ -43,7 +44,8 @@ public class Product {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne
-    @JoinColumn(name = "subcategory_id", nullable = false)
-    private SubCategory subCategory;
+    @ManyToOne
+    @JoinColumn(name = "item_category_id", nullable = false)
+    @JsonManagedReference
+    private ItemCategory itemCategory;
 }

@@ -2,11 +2,12 @@ package com.example.tecnosserver.products.service;
 
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
+import com.example.tecnosserver.itemcategory.model.ItemCategory;
+import com.example.tecnosserver.itemcategory.repo.ItemCategoryRepo;
 import com.example.tecnosserver.products.dto.ProductDTO;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
 import com.example.tecnosserver.subcategory.model.SubCategory;
-import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,13 +19,13 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
     private final ProductRepo productRepo;
 
-    private final SubCategoryRepo subCategoryRepo;
+    private final ItemCategoryRepo itemCategoryRepo;
 
-
-    public ProductCommandServiceImpl(ProductRepo productRepo, SubCategoryRepo subCategoryRepo) {
+    public ProductCommandServiceImpl(ProductRepo productRepo, ItemCategoryRepo itemCategoryRepo) {
         this.productRepo = productRepo;
-        this.subCategoryRepo = subCategoryRepo;
+        this.itemCategoryRepo = itemCategoryRepo;
     }
+
 
     @Override
     public void createProduct(ProductDTO productDTO) {
@@ -33,9 +34,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             throw new AlreadyExistsException("Product with sku " + productDTO.getSku() + " already exists");
         }
 
-        Optional<SubCategory> subCategoryOpt = subCategoryRepo.findSubCategoryByName(productDTO.getSubCategory());
-        if (subCategoryOpt.isEmpty()) {
-            throw new NotFoundException("Subcategory with name " + productDTO.getSubCategory() + " not found");
+
+
+        Optional<ItemCategory> itemCategoryOpt = itemCategoryRepo.findByName(productDTO.getItemCategory());
+        if (itemCategoryOpt.isEmpty()) {
+            throw new NotFoundException("Item category with name " + productDTO.getItemCategory() + " not found");
         }
 
 
@@ -44,7 +47,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .name(productDTO.getName())
                 .description(productDTO.getDescription())
                 .image(productDTO.getImage())
-                .subCategory(subCategoryOpt.get())
+                .itemCategory(itemCategoryOpt.get())
                 .build();
 
         productRepo.save(product);
@@ -58,9 +61,10 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             throw new NotFoundException("Product with sku " + sku + " not found");
         }
 
-        Optional<SubCategory> subCategoryOpt = subCategoryRepo.findSubCategoryByName(updatedProductDTO.getSubCategory());
-        if (subCategoryOpt.isEmpty()) {
-            throw new NotFoundException("Subcategory with name " + updatedProductDTO.getSubCategory() + " not found");
+
+        Optional<ItemCategory> itemCategoryOpt = itemCategoryRepo.findByName(updatedProductDTO.getItemCategory());
+        if (itemCategoryOpt.isEmpty()) {
+            throw new NotFoundException("Item category with name " + updatedProductDTO.getItemCategory() + " not found");
         }
 
         Product product = productOpt.get();
@@ -69,7 +73,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         product.setSku(updatedProductDTO.getSku());
         product.setName(updatedProductDTO.getName());
         product.setDescription(updatedProductDTO.getDescription());
-        product.setSubCategory(subCategoryOpt.get());
+        product.setItemCategory(itemCategoryOpt.get());
         product.setImage(updatedProductDTO.getImage());
         productRepo.save(product);
     }

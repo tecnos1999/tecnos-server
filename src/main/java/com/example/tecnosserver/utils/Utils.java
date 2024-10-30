@@ -18,5 +18,5 @@ public class Utils {
     public static final String FORBIDDEN_MESSAGE = "You need to log in to access this page";
     public static final String ACCESS_DENIED_MESSAGE = "You do not have permission to access this page";
     public static final String OPTIONS_HTTP_METHOD = "OPTIONS";
-    public static final String[] PUBLIC_URLS = {"/swagger-ui.html","/swagger-ui/**","/v3/**","/server/api/v1/login","/server/api/v1/register" , "/server/api/v1/category/*" ,"/server/api/v1/subcategory/*"};
+    public static final String[] PUBLIC_URLS = {"/swagger-ui.html","/swagger-ui/**","/v3/**","/server/api/v1/login","/server/api/v1/register" , "/server/api/v1/category/*" ,"/server/api/v1/subcategory/*" , "/server/api/v1/itemcategory/*"};
 }

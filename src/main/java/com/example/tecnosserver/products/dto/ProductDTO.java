@@ -12,7 +12,7 @@ public class ProductDTO {
     private String sku;
     private String name;
     private String description;
-    private String subCategory;
+    private String itemCategory;
     private int stock;
     private String image;
 }
