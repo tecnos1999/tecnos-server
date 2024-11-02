@@ -4,6 +4,7 @@ import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,6 +37,11 @@ public class ItemCategory {
     @JoinColumn(name = "subcategory_id", nullable = false)
     @JsonBackReference
     private SubCategory subCategory;
+
+    @JsonProperty("subcategoryName")
+    public String getSubCategoryName() {
+        return subCategory != null ? subCategory.getName() : null;
+    }
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -35,13 +35,7 @@ server:
   error:
     include-message: always
     include-binding-errors: always
-  port: 8081
-
-#aws:
-#  accessKey: 005df870e6d8e2a0000000003
-#  secretKey: K005chWsD61WVtb2Sj4SRspzaKKO+wc
-#  region: us-east-005
-
+  port: 8080
 
 logging:
   level:
@@ -53,6 +47,7 @@ metrics:
       http:
         server:
           request: true
+
 management:
   tracing:
     sampling:
