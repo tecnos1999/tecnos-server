@@ -42,8 +42,6 @@ public class CategoryControllerApi {
     }
 
     @GetMapping("/find")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
-
     public ResponseEntity<Category> findCategoryByName(@RequestParam String name) {
         Optional<Category> category = categoryQueryService.findCategoryByName(name);
         return category.map(ResponseEntity::ok)
@@ -51,7 +49,6 @@ public class CategoryControllerApi {
     }
 
     @GetMapping("/findAll")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<List<Category>> findAllCategories() {
         Optional<List<Category>> categories = categoryQueryService.findAllCategories();
         return categories.map(ResponseEntity::ok)

@@ -43,7 +43,6 @@ public class SubCategoryControllerApi {
     }
 
     @GetMapping("/find")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<SubCategory> findSubCategoryByName(@RequestParam String name) {
         Optional<SubCategory> subCategory = subCategoryQueryService.findSubCategoryByName(name);
         return subCategory.map(ResponseEntity::ok)
@@ -51,7 +50,6 @@ public class SubCategoryControllerApi {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<List<SubCategory>> findAllSubCategories() {
         Optional<List<SubCategory>> subCategories = subCategoryQueryService.findAllSubCategories();
         return subCategories.map(ResponseEntity::ok)

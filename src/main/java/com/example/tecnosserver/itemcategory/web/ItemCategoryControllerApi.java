@@ -43,7 +43,6 @@ public class ItemCategoryControllerApi {
     }
 
     @GetMapping("/find")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<ItemCategory> findItemCategoryByName(@RequestParam String name) {
         Optional<ItemCategory> itemCategory = itemCategoryQueryService.findItemCategoryByName(name);
         return itemCategory.map(ResponseEntity::ok)
@@ -51,7 +50,6 @@ public class ItemCategoryControllerApi {
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<List<ItemCategory>> findAllItemCategories() {
         Optional<List<ItemCategory>> itemCategories = itemCategoryQueryService.findAllItemCategories();
         return itemCategories.map(ResponseEntity::ok)
