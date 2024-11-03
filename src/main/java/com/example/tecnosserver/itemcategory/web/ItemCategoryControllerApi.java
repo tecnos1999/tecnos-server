@@ -6,6 +6,7 @@ import com.example.tecnosserver.itemcategory.service.ItemCategoryQueryServiceImp
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,24 +22,28 @@ public class ItemCategoryControllerApi {
     private final ItemCategoryQueryServiceImpl itemCategoryQueryService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> createItemCategory(@RequestParam String name, @RequestParam String subCategory) {
         itemCategoryCommandService.createItemCategory(name, subCategory);
         return ResponseEntity.status(HttpStatus.CREATED).body("ItemCategory '" + name + "' created successfully.");
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> updateItemCategory(@RequestParam String name, @RequestParam String updatedName) {
         itemCategoryCommandService.updateItemCategory(name, updatedName);
         return ResponseEntity.ok("ItemCategory updated from '" + name + "' to '" + updatedName + "'.");
     }
 
     @DeleteMapping("/delete")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String> deleteItemCategory(@RequestParam String name) {
         itemCategoryCommandService.deleteItemCategory(name);
         return ResponseEntity.ok("ItemCategory '" + name + "' deleted successfully.");
     }
 
     @GetMapping("/find")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<ItemCategory> findItemCategoryByName(@RequestParam String name) {
         Optional<ItemCategory> itemCategory = itemCategoryQueryService.findItemCategoryByName(name);
         return itemCategory.map(ResponseEntity::ok)
@@ -46,6 +51,7 @@ public class ItemCategoryControllerApi {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CLIENT')")
     public ResponseEntity<List<ItemCategory>> findAllItemCategories() {
         Optional<List<ItemCategory>> itemCategories = itemCategoryQueryService.findAllItemCategories();
         return itemCategories.map(ResponseEntity::ok)

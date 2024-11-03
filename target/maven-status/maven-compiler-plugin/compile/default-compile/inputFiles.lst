@@ -9,6 +9,13 @@ C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\e
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\exceptions\exception\AppException.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\exceptions\exception\NotFoundException.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\exceptions\model\GlobalExceptionHandler.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\model\ItemCategory.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\repo\ItemCategoryRepo.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\service\ItemCategoryCommandService.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\service\ItemCategoryCommandServiceImpl.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\service\ItemCategoryQueryService.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\service\ItemCategoryQueryServiceImpl.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\itemcategory\web\ItemCategoryControllerApi.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\dto\ProductDTO.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\model\Product.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\repo\ProductRepo.java
@@ -16,6 +23,7 @@ C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\e
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\service\ProductCommandServiceImpl.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\service\ProductQueryService.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\service\ProductQueryServiceImpl.java
+C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\products\web\ProductControllerApi.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\subcategory\model\SubCategory.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\subcategory\repo\SubCategoryRepo.java
 C:\Users\denis\OneDrive\Desktop\tecnos-project\tecnos-server\src\main\java\com\example\tecnosserver\subcategory\service\SubCategoryCommandService.java
