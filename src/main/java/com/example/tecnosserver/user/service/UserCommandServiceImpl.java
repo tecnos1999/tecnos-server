@@ -35,7 +35,7 @@ public class UserCommandServiceImpl implements UserCommandService {
                     .password(passwordEncoder.encode(userDTO.password()))
                     .registeredAt(LocalDateTime.now())
                     .createdAt(userDTO.createdAt())
-                    .userRole(UserRole.CLIENT)
+                    .userRole(UserRole.ADMIN)
                     .build();
             userRepo.saveAndFlush(x);
         } else {
