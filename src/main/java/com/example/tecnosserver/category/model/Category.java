@@ -1,6 +1,7 @@
 package com.example.tecnosserver.category.model;
 
 import com.example.tecnosserver.subcategory.model.SubCategory;
+import com.example.tecnosserver.utils.MainSection;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -30,6 +31,10 @@ public class Category {
 
     @Column(name = "name", nullable = false,unique = true)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "main_section", nullable = false)
+    private MainSection mainSection;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
