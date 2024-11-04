@@ -22,15 +22,15 @@ public class CategoryControllerApi {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> createCategory(@RequestParam String name) {
-        categoryCommandService.createCategory(name);
+    public ResponseEntity<String> createCategory(@RequestParam String name, @RequestParam String mainSection) {
+        categoryCommandService.createCategory(name, mainSection);
         return ResponseEntity.status(HttpStatus.CREATED).body("Category '" + name + "' created successfully.");
     }
 
     @PutMapping("/update")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> updateCategory(@RequestParam String name, @RequestParam String updatedName) {
-        categoryCommandService.updateCategory(name, updatedName);
+    public ResponseEntity<String> updateCategory(@RequestParam String name, @RequestParam String updatedName, @RequestParam String updatedMainSection) {
+        categoryCommandService.updateCategory(name, updatedName, updatedMainSection);
         return ResponseEntity.ok("Category updated from '" + name + "' to '" + updatedName + "'.");
     }
 

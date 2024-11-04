@@ -1,5 +1,8 @@
 package com.example.tecnosserver.utils;
 
+import lombok.Getter;
+
+@Getter
 public enum MainSection {
     ACASA("Acasă"),
     PRODUSE("Produse"),
@@ -12,8 +15,5 @@ public enum MainSection {
         this.label = label;
     }
 
-    public String getLabel() {
-        return label;
-    }
 }
 

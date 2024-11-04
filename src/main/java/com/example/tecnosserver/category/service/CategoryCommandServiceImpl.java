@@ -53,7 +53,6 @@ public class CategoryCommandServiceImpl implements CategoryCommandService{
     public void deleteCategory(String name) {
         Category categoryToDelete = categoryRepo.findCategoryByName(name)
                 .orElseThrow(() -> new NotFoundException("Category with name '" + name + "' not found"));
-
         categoryRepo.delete(categoryToDelete);
     }
 
