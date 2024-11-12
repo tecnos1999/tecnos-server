@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -41,5 +42,11 @@ public class ProductControllerApi {
     public ResponseEntity<Product> findProductBySku(@PathVariable String sku) {
         Optional<Product> productOpt = productQueryService.findProductBySku(sku);
         return ResponseEntity.ok(productOpt.get());
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Product>> findAllProducts() {
+        Optional<List<Product>> productsOpt = productQueryService.findAllProducts();
+        return ResponseEntity.ok(productsOpt.get());
     }
 }
