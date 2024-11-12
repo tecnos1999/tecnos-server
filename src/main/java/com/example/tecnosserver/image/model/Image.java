@@ -17,5 +17,8 @@ public class Image {
 
     @Column(name = "url", nullable = false)
     private String url;
+
+    @Column(name = "type", nullable = false)
+    private String type;
 }
 
