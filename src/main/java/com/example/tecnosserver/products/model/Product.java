@@ -40,7 +40,7 @@ public class Product {
 
     @Column(name="catalog")
     private String catalog;
-    
+
     @Column(name="link_video")
     private String linkVideo;
 

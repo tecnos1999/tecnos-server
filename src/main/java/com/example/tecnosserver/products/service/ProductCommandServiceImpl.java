@@ -46,8 +46,11 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .sku(productDTO.getSku())
                 .name(productDTO.getName())
                 .description(productDTO.getDescription())
-                .image(productDTO.getImage())
                 .itemCategory(itemCategoryOpt.get())
+                .broschure(productDTO.getBroschure())
+                .tehnic(productDTO.getTehnic())
+                .catalog(productDTO.getCatalog())
+                .linkVideo(productDTO.getLinkVideo())
                 .build();
 
         productRepo.save(product);
@@ -67,15 +70,22 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             throw new NotFoundException("Item category with name " + updatedProductDTO.getItemCategory() + " not found");
         }
 
+        Product product = getProduct(updatedProductDTO, productOpt, itemCategoryOpt);
+
+        productRepo.save(product);
+    }
+
+    private static Product getProduct(ProductDTO updatedProductDTO, Optional<Product> productOpt, Optional<ItemCategory> itemCategoryOpt) {
         Product product = productOpt.get();
-
-
         product.setSku(updatedProductDTO.getSku());
         product.setName(updatedProductDTO.getName());
         product.setDescription(updatedProductDTO.getDescription());
         product.setItemCategory(itemCategoryOpt.get());
-        product.setImage(updatedProductDTO.getImage());
-        productRepo.save(product);
+        product.setBroschure(updatedProductDTO.getBroschure());
+        product.setTehnic(updatedProductDTO.getTehnic());
+        product.setCatalog(updatedProductDTO.getCatalog());
+        product.setLinkVideo(updatedProductDTO.getLinkVideo());
+        return product;
     }
 
     @Override

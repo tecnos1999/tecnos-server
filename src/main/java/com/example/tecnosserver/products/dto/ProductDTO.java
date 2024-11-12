@@ -13,7 +13,10 @@ public class ProductDTO {
     private String name;
     private String description;
     private String itemCategory;
-    private int stock;
     private String image;
+    private String broschure;
+    private String tehnic;
+    private String catalog;
+    private String linkVideo;
 }
 
