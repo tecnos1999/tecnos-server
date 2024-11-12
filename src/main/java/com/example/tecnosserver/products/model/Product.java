@@ -32,8 +32,16 @@ public class Product {
     @Column(name="description", nullable = false)
     private String description;
 
+    @Column(name="broschure")
+    private String broschure;
 
-    @Column(name="image", nullable = false)
+    @Column(name="tehnic")
+    private String tehnic;
+
+    @Column(name="catalog")
+    private String catalog;
+
+    @Column(name="image")
     private String image;
 
     @CreationTimestamp
@@ -45,7 +53,7 @@ public class Product {
     private LocalDateTime updatedAt;
 
     @ManyToOne
-    @JoinColumn(name = "item_category_id", nullable = false)
+    @JoinColumn(name = "item_category_id", referencedColumnName = "id")
     @JsonManagedReference
     private ItemCategory itemCategory;
 }
