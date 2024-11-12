@@ -1,14 +1,14 @@
 package com.example.tecnosserver.products.model;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
-import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
+import com.example.tecnosserver.image.model.Image;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity(name = "Product")
 @Table(name = "products")
@@ -40,10 +40,7 @@ public class Product {
 
     @Column(name="catalog")
     private String catalog;
-
-    @Column(name="image")
-    private String image;
-
+    
     @Column(name="link_video")
     private String linkVideo;
 
@@ -59,4 +56,8 @@ public class Product {
     @JoinColumn(name = "item_category_id", referencedColumnName = "id")
     @JsonManagedReference
     private ItemCategory itemCategory;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "product_id")
+    private List<Image> images;
 }
