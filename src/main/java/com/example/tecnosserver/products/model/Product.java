@@ -1,5 +1,8 @@
 package com.example.tecnosserver.products.model;
+import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
+import com.example.tecnosserver.subcategory.model.SubCategory;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -56,6 +59,16 @@ public class Product {
     @JoinColumn(name = "item_category_id", referencedColumnName = "id")
     @JsonManagedReference
     private ItemCategory itemCategory;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    @JsonBackReference(value = "category-product")
+    private Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "subcategory_id")
+    @JsonBackReference(value = "subcategory-product")
+    private SubCategory subCategory;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "product_id")

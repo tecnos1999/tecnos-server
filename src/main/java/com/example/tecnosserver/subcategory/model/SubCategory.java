@@ -60,6 +60,9 @@ public class SubCategory {
     @JsonManagedReference
     private List<ItemCategory> itemCategories;
 
+    @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "subcategory-product")
+    private List<Product> products;
 
 }
 
