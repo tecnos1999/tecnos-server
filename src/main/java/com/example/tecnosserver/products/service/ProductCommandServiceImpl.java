@@ -3,7 +3,9 @@ package com.example.tecnosserver.products.service;
 import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.category.repo.CategoryRepo;
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
+import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
+import com.example.tecnosserver.image.model.Image;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.itemcategory.repo.ItemCategoryRepo;
 import com.example.tecnosserver.products.dto.ProductDTO;
@@ -11,8 +13,8 @@ import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -35,109 +37,122 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
     @Override
     public void createProduct(ProductDTO productDTO) {
-        Optional<Product> productOpt = productRepo.findProductBySku(productDTO.getSku());
-        if (productOpt.isPresent()) {
-            throw new AlreadyExistsException("Product with sku " + productDTO.getSku() + " already exists");
+        validateMandatoryFields(productDTO);
+
+        if (productRepo.findProductBySku(productDTO.getSku()).isPresent()) {
+            throw new AlreadyExistsException("Product with SKU '" + productDTO.getSku() + "' already exists");
         }
 
-        Optional<ItemCategory> itemCategoryOpt = Optional.empty();
-        if (productDTO.getItemCategory() != null) {
-            itemCategoryOpt = itemCategoryRepo.findByName(productDTO.getItemCategory());
-            if (itemCategoryOpt.isEmpty()) {
-                throw new NotFoundException("Item category with name " + productDTO.getItemCategory() + " not found");
-            }
-        }
-
-        Optional<Category> categoryOpt = Optional.empty();
-        if (productDTO.getCategory() != null) {
-            categoryOpt = categoryRepo.findCategoryByName(productDTO.getCategory());
-            if (categoryOpt.isEmpty()) {
-                throw new NotFoundException("Category with name " + productDTO.getCategory() + " not found");
-            }
-        }
-
-        Optional<SubCategory> subCategoryOpt = Optional.empty();
-        if (productDTO.getSubCategory() != null) {
-            subCategoryOpt = subCategoryRepo.findSubCategoryByName(productDTO.getSubCategory());
-            if (subCategoryOpt.isEmpty()) {
-                throw new NotFoundException("Subcategory with name " + productDTO.getSubCategory() + " not found");
-            }
-        }
+        Optional<Category> categoryOpt = validateAndRetrieveCategory(productDTO.getCategory());
+        Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(productDTO.getSubCategory());
+        Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(productDTO.getItemCategory());
 
         Product product = Product.builder()
                 .sku(productDTO.getSku())
                 .name(productDTO.getName())
                 .description(productDTO.getDescription())
-                .itemCategory(itemCategoryOpt.orElse(null))
                 .category(categoryOpt.orElse(null))
                 .subCategory(subCategoryOpt.orElse(null))
+                .itemCategory(itemCategoryOpt.orElse(null))
                 .broschure(productDTO.getBroschure())
                 .tehnic(productDTO.getTehnic())
                 .catalog(productDTO.getCatalog())
                 .linkVideo(productDTO.getLinkVideo())
                 .build();
 
+        if (productDTO.getImages() != null && !productDTO.getImages().isEmpty()) {
+            product.setImages(productDTO.getImages().stream()
+                    .map(imageDTO -> Image.builder()
+                            .url(imageDTO.getUrl())
+                            .type(imageDTO.getType())
+                            .build())
+                    .toList());
+        }
+
         productRepo.save(product);
     }
 
     @Override
     public void updateProduct(String sku, ProductDTO updatedProductDTO) {
-        Optional<Product> productOpt = productRepo.findProductBySku(sku);
-        if (productOpt.isEmpty()) {
-            throw new NotFoundException("Product with sku " + sku + " not found");
+        Product existingProduct = productRepo.findProductBySku(sku)
+                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found"));
+
+        validateMandatoryFields(updatedProductDTO);
+
+        Optional<Category> categoryOpt = validateAndRetrieveCategory(updatedProductDTO.getCategory());
+        Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory());
+        Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory());
+
+        existingProduct.setSku(updatedProductDTO.getSku());
+        existingProduct.setName(updatedProductDTO.getName());
+        existingProduct.setDescription(updatedProductDTO.getDescription());
+        existingProduct.setCategory(categoryOpt.orElse(null));
+        existingProduct.setSubCategory(subCategoryOpt.orElse(null));
+        existingProduct.setItemCategory(itemCategoryOpt.orElse(null));
+        existingProduct.setBroschure(updatedProductDTO.getBroschure());
+        existingProduct.setTehnic(updatedProductDTO.getTehnic());
+        existingProduct.setCatalog(updatedProductDTO.getCatalog());
+        existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
+
+        if (updatedProductDTO.getImages() != null) {
+            existingProduct.setImages(updatedProductDTO.getImages().stream()
+                    .map(imageDTO -> Image.builder()
+                            .url(imageDTO.getUrl())
+                            .type(imageDTO.getType())
+                            .build())
+                    .toList());
         }
 
-        Optional<ItemCategory> itemCategoryOpt = Optional.empty();
-        if (updatedProductDTO.getItemCategory() != null) {
-            itemCategoryOpt = itemCategoryRepo.findByName(updatedProductDTO.getItemCategory());
-            if (itemCategoryOpt.isEmpty()) {
-                throw new NotFoundException("Item category with name " + updatedProductDTO.getItemCategory() + " not found");
-            }
-        }
-
-        Optional<Category> categoryOpt = Optional.empty();
-        if (updatedProductDTO.getCategory() != null) {
-            categoryOpt = categoryRepo.findCategoryByName(updatedProductDTO.getCategory());
-            if (categoryOpt.isEmpty()) {
-                throw new NotFoundException("Category with name " + updatedProductDTO.getCategory() + " not found");
-            }
-        }
-
-        Optional<SubCategory> subCategoryOpt = Optional.empty();
-        if (updatedProductDTO.getSubCategory() != null) {
-            subCategoryOpt = subCategoryRepo.findSubCategoryByName(updatedProductDTO.getSubCategory());
-            if (subCategoryOpt.isEmpty()) {
-                throw new NotFoundException("Subcategory with name " + updatedProductDTO.getSubCategory() + " not found");
-            }
-        }
-
-        Product product = getProduct(updatedProductDTO, productOpt, itemCategoryOpt, categoryOpt, subCategoryOpt);
-        productRepo.save(product);
-    }
-
-    private static Product getProduct(ProductDTO updatedProductDTO, Optional<Product> productOpt,
-                                      Optional<ItemCategory> itemCategoryOpt, Optional<Category> categoryOpt,
-                                      Optional<SubCategory> subCategoryOpt) {
-        Product product = productOpt.get();
-        product.setSku(updatedProductDTO.getSku());
-        product.setName(updatedProductDTO.getName());
-        product.setDescription(updatedProductDTO.getDescription());
-        product.setItemCategory(itemCategoryOpt.orElse(null));
-        product.setCategory(categoryOpt.orElse(null));
-        product.setSubCategory(subCategoryOpt.orElse(null));
-        product.setBroschure(updatedProductDTO.getBroschure());
-        product.setTehnic(updatedProductDTO.getTehnic());
-        product.setCatalog(updatedProductDTO.getCatalog());
-        product.setLinkVideo(updatedProductDTO.getLinkVideo());
-        return product;
+        productRepo.save(existingProduct);
     }
 
     @Override
     public void deleteProduct(String sku) {
-        Optional<Product> productOpt = productRepo.findProductBySku(sku);
-        if (productOpt.isEmpty()) {
-            throw new NotFoundException("Product with sku " + sku + " not found");
+        Product existingProduct = productRepo.findProductBySku(sku)
+                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found"));
+
+        productRepo.delete(existingProduct);
+    }
+
+    private void validateMandatoryFields(ProductDTO productDTO) {
+        if (productDTO.getSku() == null || productDTO.getSku().trim().isEmpty()) {
+            throw new AppException("SKU cannot be null or empty");
         }
-        productRepo.delete(productOpt.get());
+        if (productDTO.getName() == null || productDTO.getName().trim().isEmpty()) {
+            throw new AppException("Product name cannot be null or empty");
+        }
+        if (productDTO.getDescription() == null || productDTO.getDescription().trim().isEmpty()) {
+            throw new AppException("Description cannot be null or empty");
+        }
+    }
+
+    private Optional<Category> validateAndRetrieveCategory(String categoryName) {
+        if (categoryName != null && !categoryName.trim().isEmpty()) {
+            return categoryRepo.findCategoryByName(categoryName)
+                    .or(() -> {
+                        throw new NotFoundException("Category with name '" + categoryName + "' not found");
+                    });
+        }
+        return Optional.empty();
+    }
+
+    private Optional<SubCategory> validateAndRetrieveSubCategory(String subCategoryName) {
+        if (subCategoryName != null && !subCategoryName.trim().isEmpty()) {
+            return subCategoryRepo.findSubCategoryByName(subCategoryName)
+                    .or(() -> {
+                        throw new NotFoundException("Subcategory with name '" + subCategoryName + "' not found");
+                    });
+        }
+        return Optional.empty();
+    }
+
+    private Optional<ItemCategory> validateAndRetrieveItemCategory(String itemCategoryName) {
+        if (itemCategoryName != null && !itemCategoryName.trim().isEmpty()) {
+            return itemCategoryRepo.findByName(itemCategoryName)
+                    .or(() -> {
+                        throw new NotFoundException("Item category with name '" + itemCategoryName + "' not found");
+                    });
+        }
+        return Optional.empty();
     }
 }
