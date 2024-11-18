@@ -10,4 +10,9 @@ public interface ProductQueryService {
     Optional<Product> findProductBySku(String sku);
 
     Optional<List<Product>> findAllProducts();
+
+    Optional<List<Product>> findAllByCategoryAndSubCategory(String category, String subCategory);
+
+    Optional<List<Product>> findAllByCategoryAndSubCategoryAndItemCategory(String category, String subCategory, String itemCategory);
+
 }

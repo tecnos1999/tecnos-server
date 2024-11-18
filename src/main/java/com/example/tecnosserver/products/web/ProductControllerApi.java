@@ -49,4 +49,21 @@ public class ProductControllerApi {
         Optional<List<Product>> productsOpt = productQueryService.findAllProducts();
         return ResponseEntity.ok(productsOpt.get());
     }
+
+    @GetMapping("/category/{category}/subcategory/{subCategory}")
+    public ResponseEntity<List<Product>> findAllByCategoryAndSubCategory(
+            @PathVariable String category,
+            @PathVariable String subCategory) {
+        Optional<List<Product>> productsOpt = productQueryService.findAllByCategoryAndSubCategory(category, subCategory);
+        return ResponseEntity.ok(productsOpt.get());
+    }
+
+    @GetMapping("/category/{category}/subcategory/{subCategory}/item-category/{itemCategory}")
+    public ResponseEntity<List<Product>> findAllByCategoryAndSubCategoryAndItemCategory(
+            @PathVariable String category,
+            @PathVariable String subCategory,
+            @PathVariable String itemCategory) {
+        Optional<List<Product>> productsOpt = productQueryService.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory);
+        return ResponseEntity.ok(productsOpt.get());
+    }
 }

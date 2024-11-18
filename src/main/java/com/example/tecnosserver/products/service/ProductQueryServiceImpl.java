@@ -35,5 +35,23 @@ public class ProductQueryServiceImpl implements ProductQueryService{
         return Optional.of(products);
     }
 
+    @Override
+    public Optional<List<Product>> findAllByCategoryAndSubCategory(String category, String subCategory) {
+        Optional<List<Product>> products = productRepo.findAllByCategoryAndSubCategory(category, subCategory);
+        if (products.isEmpty()) {
+            throw new NotFoundException("No products found for category " + category + " and subcategory " + subCategory);
+        }
+        return products;
+    }
+
+    @Override
+    public Optional<List<Product>> findAllByCategoryAndSubCategoryAndItemCategory(String category, String subCategory, String itemCategory) {
+        Optional<List<Product>> products = productRepo.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory);
+        if (products.isEmpty()) {
+            throw new NotFoundException("No products found for category " + category + ", subcategory " + subCategory + " and item category " + itemCategory);
+        }
+        return products;
+    }
+
 
 }
