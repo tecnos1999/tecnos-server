@@ -23,24 +23,33 @@ public class ItemCategoryControllerApi {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> createItemCategory(@RequestParam String name, @RequestParam String subCategory) {
-        itemCategoryCommandService.createItemCategory(name, subCategory);
+    public ResponseEntity<String> createItemCategory(@RequestParam String name, @RequestParam String subCategory, @RequestParam String categoryName) {
+        itemCategoryCommandService.createItemCategory(name, subCategory, categoryName);
         return ResponseEntity.status(HttpStatus.CREATED).body("ItemCategory '" + name + "' created successfully.");
     }
 
     @PutMapping("/update")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> updateItemCategory(@RequestParam String name, @RequestParam String updatedName) {
-        itemCategoryCommandService.updateItemCategory(name, updatedName);
+    public ResponseEntity<String> updateItemCategory(
+            @RequestParam String name,
+            @RequestParam String updatedName,
+            @RequestParam String subCategoryName,
+            @RequestParam String categoryName) {
+        itemCategoryCommandService.updateItemCategory(name, updatedName, subCategoryName, categoryName);
         return ResponseEntity.ok("ItemCategory updated from '" + name + "' to '" + updatedName + "'.");
     }
 
+
     @DeleteMapping("/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteItemCategory(@RequestParam String name) {
-        itemCategoryCommandService.deleteItemCategory(name);
+    public ResponseEntity<String> deleteItemCategory(
+            @RequestParam String name,
+            @RequestParam String subCategoryName,
+            @RequestParam String categoryName) {
+        itemCategoryCommandService.deleteItemCategory(name, subCategoryName, categoryName);
         return ResponseEntity.ok("ItemCategory '" + name + "' deleted successfully.");
     }
+
 
     @GetMapping("/find")
     public ResponseEntity<ItemCategory> findItemCategoryByName(@RequestParam String name) {

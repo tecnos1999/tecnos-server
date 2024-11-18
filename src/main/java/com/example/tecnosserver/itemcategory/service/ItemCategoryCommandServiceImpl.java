@@ -1,5 +1,7 @@
 package com.example.tecnosserver.itemcategory.service;
 
+import com.example.tecnosserver.category.model.Category;
+import com.example.tecnosserver.category.repo.CategoryRepo;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.itemcategory.repo.ItemCategoryRepo;
@@ -16,20 +18,26 @@ public class ItemCategoryCommandServiceImpl implements ItemCategoryCommandServic
     private final ItemCategoryRepo itemCategoryRepository;
     private final SubCategoryRepo subCategoryRepository;
 
-    public ItemCategoryCommandServiceImpl(ItemCategoryRepo itemCategoryRepository, SubCategoryRepo subCategoryRepository) {
+    private final CategoryRepo categoryRepository;
+
+    public ItemCategoryCommandServiceImpl(ItemCategoryRepo itemCategoryRepository, SubCategoryRepo subCategoryRepository, CategoryRepo categoryRepository) {
         this.itemCategoryRepository = itemCategoryRepository;
         this.subCategoryRepository = subCategoryRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
     @Transactional
-    public void createItemCategory(String name, String subCategoryName) {
-        SubCategory subCategory = subCategoryRepository.findSubCategoryByName(subCategoryName)
-                .orElseThrow(() -> new NotFoundException("SubCategory with name '" + subCategoryName + "' not found"));
+    public void createItemCategory(String name, String subCategoryName, String categoryName) {
+        Category category = categoryRepository.findCategoryByName(categoryName)
+                .orElseThrow(() -> new NotFoundException("Category with name '" + categoryName + "' not found"));
 
-        boolean itemCategoryExists = itemCategoryRepository.existsByNameAndSubCategory(name, subCategory);
+        SubCategory subCategory = subCategoryRepository.findByNameAndCategory(subCategoryName, category)
+                .orElseThrow(() -> new NotFoundException("SubCategory with name '" + subCategoryName + "' not found in category '" + categoryName + "'"));
+
+        boolean itemCategoryExists = itemCategoryRepository.existsByNameAndSubCategoryAndCategory(name, subCategory, category);
         if (itemCategoryExists) {
-            throw new NotFoundException("ItemCategory with name '" + name + "' already exists in subcategory '" + subCategoryName + "'");
+            throw new NotFoundException("ItemCategory with name '" + name + "' already exists in subcategory '" + subCategoryName + "' within category '" + categoryName + "'");
         }
 
         ItemCategory itemCategory = new ItemCategory();
@@ -42,28 +50,41 @@ public class ItemCategoryCommandServiceImpl implements ItemCategoryCommandServic
 
     @Override
     @Transactional
-    public void updateItemCategory(String name, String updatedName) {
+    public void updateItemCategory(String name, String updatedName, String subCategoryName, String categoryName) {
+        // Verificăm dacă categoria există
+        Category category = categoryRepository.findCategoryByName(categoryName)
+                .orElseThrow(() -> new NotFoundException("Category with name '" + categoryName + "' not found"));
 
+        SubCategory subCategory = subCategoryRepository.findByNameAndCategory(subCategoryName, category)
+                .orElseThrow(() -> new NotFoundException("SubCategory with name '" + subCategoryName + "' not found in category '" + categoryName + "'"));
 
-        Optional<ItemCategory> item= itemCategoryRepository.findByName(updatedName);
-        if(item.isPresent()){
-            throw new NotFoundException("ItemCategory with this updatedName " + name + " already exists");
+        boolean itemCategoryExists = itemCategoryRepository.existsByNameAndSubCategoryAndCategory(updatedName, subCategory, category);
+        if (itemCategoryExists) {
+            throw new NotFoundException("ItemCategory with updated name '" + updatedName + "' already exists in subcategory '" + subCategoryName + "' within category '" + categoryName + "'");
         }
 
-
-        ItemCategory itemCategory = itemCategoryRepository.findByName(name)
-                .orElseThrow(() -> new NotFoundException("ItemCategory with name " + name + " not found"));
-
+        ItemCategory itemCategory = itemCategoryRepository.findByNameAndSubCategoryAndCategory(name, subCategory, category)
+                .orElseThrow(() -> new NotFoundException("ItemCategory with name '" + name + "' not found in subcategory '" + subCategoryName + "' within category '" + categoryName + "'"));
 
         itemCategory.setName(updatedName);
         itemCategoryRepository.save(itemCategory);
     }
 
+
     @Override
     @Transactional
-    public void deleteItemCategory(String name) {
-        ItemCategory itemCategory = itemCategoryRepository.findByName(name)
-                .orElseThrow(() -> new NotFoundException("ItemCategory with name " + name + " not found"));
+
+    public void deleteItemCategory(String name, String subCategoryName, String categoryName) {
+        Category category = categoryRepository.findCategoryByName(categoryName)
+                .orElseThrow(() -> new NotFoundException("Category with name '" + categoryName + "' not found"));
+
+        SubCategory subCategory = subCategoryRepository.findByNameAndCategory(subCategoryName, category)
+                .orElseThrow(() -> new NotFoundException("SubCategory with name '" + subCategoryName + "' not found in category '" + categoryName + "'"));
+
+        ItemCategory itemCategory = itemCategoryRepository.findByNameAndSubCategoryAndCategory(name, subCategory, category)
+                .orElseThrow(() -> new NotFoundException("ItemCategory with name '" + name + "' not found in subcategory '" + subCategoryName + "' within category '" + categoryName + "'"));
+
         itemCategoryRepository.delete(itemCategory);
     }
+
 }
