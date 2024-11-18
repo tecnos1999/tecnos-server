@@ -25,17 +25,20 @@ public class ItemCategoryCommandServiceImpl implements ItemCategoryCommandServic
     @Transactional
     public void createItemCategory(String name, String subCategoryName) {
         SubCategory subCategory = subCategoryRepository.findSubCategoryByName(subCategoryName)
-                .orElseThrow(() -> new NotFoundException("SubCategory with name " + subCategoryName + " not found"));
+                .orElseThrow(() -> new NotFoundException("SubCategory with name '" + subCategoryName + "' not found"));
 
-        Optional<ItemCategory> item= itemCategoryRepository.findByName(name);
-        if(item.isPresent()){
-            throw new NotFoundException("ItemCategory with name " + name + " already exists");
+        boolean itemCategoryExists = itemCategoryRepository.existsByNameAndSubCategory(name, subCategory);
+        if (itemCategoryExists) {
+            throw new NotFoundException("ItemCategory with name '" + name + "' already exists in subcategory '" + subCategoryName + "'");
         }
+
         ItemCategory itemCategory = new ItemCategory();
         itemCategory.setName(name);
         itemCategory.setSubCategory(subCategory);
+
         itemCategoryRepository.save(itemCategory);
     }
+
 
     @Override
     @Transactional

@@ -5,7 +5,7 @@ public interface SubCategoryCommandService {
 
     void createSubCategory(String name,String category);
 
-    void updateSubCategory(String name, String updatedName);
+    void updateSubCategory(String name, String updatedName, String category);
 
-    void deleteSubCategory(String name);
+    void deleteSubCategory(String name , String category);
 }

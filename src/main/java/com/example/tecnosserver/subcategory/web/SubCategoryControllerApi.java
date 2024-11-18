@@ -30,15 +30,15 @@ public class SubCategoryControllerApi {
 
     @PutMapping("/update")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> updateSubCategory(@RequestParam String name, @RequestParam String updatedName) {
-        subCategoryCommandService.updateSubCategory(name, updatedName);
+    public ResponseEntity<String> updateSubCategory(@RequestParam String name, @RequestParam String updatedName, @RequestParam String category) {
+        subCategoryCommandService.updateSubCategory(name, updatedName , category);
         return ResponseEntity.ok("Subcategory updated from '" + name + "' to '" + updatedName + "'.");
     }
 
     @DeleteMapping("/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> deleteSubCategory(@RequestParam String name) {
-        subCategoryCommandService.deleteSubCategory(name);
+    public ResponseEntity<String> deleteSubCategory(@RequestParam String name , @RequestParam String category) {
+        subCategoryCommandService.deleteSubCategory(name,category);
         return ResponseEntity.ok("Subcategory '" + name + "' deleted successfully.");
     }
 

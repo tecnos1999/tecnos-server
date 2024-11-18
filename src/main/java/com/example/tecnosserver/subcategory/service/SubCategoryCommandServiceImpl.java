@@ -25,16 +25,15 @@ public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
     }
 
     @Override
-    public void createSubCategory(String name , String category) {
+    public void createSubCategory(String name, String category) {
         Optional<Category> categoryOptional = categoryRepo.findCategoryByName(category);
-        if(categoryOptional.isEmpty()) {
-            throw new NotFoundException("Category with name " + category + " not found");
+        if (categoryOptional.isEmpty()) {
+            throw new NotFoundException("Category with name '" + category + "' not found");
         }
 
-
-        Optional<SubCategory> subCategory = subCategoryRepo.findSubCategoryByName(name);
-        if (subCategory.isPresent()) {
-            throw new AlreadyExistsException("Subcategory with name " + name + " already exists");
+        boolean subCategoryExists = subCategoryRepo.existsByNameAndCategory(name, categoryOptional.get());
+        if (subCategoryExists) {
+            throw new AlreadyExistsException("Subcategory with name '" + name + "' already exists in category '" + category + "'");
         }
 
         SubCategory newSubCategory = new SubCategory();
@@ -45,16 +44,19 @@ public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
     }
 
 
-    @Override
-    public void updateSubCategory(String name, String updatedName) {
-        SubCategory subCategoryToUpdate = subCategoryRepo.findSubCategoryByName(name)
-                .orElseThrow(() -> new NotFoundException("Subcategory with name '" + name + "' not found"));
 
-        subCategoryRepo.findSubCategoryByName(updatedName).ifPresent(existingSubCategory -> {
-            if (!existingSubCategory.getId().equals(subCategoryToUpdate.getId())) {
-                throw new AlreadyExistsException("Subcategory with name '" + updatedName + "' already exists");
-            }
-        });
+    @Override
+    public void updateSubCategory(String name, String updatedName, String category) {
+        Category categoryEntity = categoryRepo.findCategoryByName(category)
+                .orElseThrow(() -> new NotFoundException("Category with name '" + category + "' not found"));
+
+        SubCategory subCategoryToUpdate = subCategoryRepo.findByNameAndCategory(name, categoryEntity)
+                .orElseThrow(() -> new NotFoundException("Subcategory with name '" + name + "' not found in category '" + category + "'"));
+
+        boolean subCategoryExists = subCategoryRepo.existsByNameAndCategory(updatedName, categoryEntity);
+        if (subCategoryExists && !subCategoryToUpdate.getName().equals(updatedName)) {
+            throw new AlreadyExistsException("Subcategory with name '" + updatedName + "' already exists in category '" + category + "'");
+        }
 
         subCategoryToUpdate.setName(updatedName);
 
@@ -62,13 +64,16 @@ public class SubCategoryCommandServiceImpl implements SubCategoryCommandService{
     }
 
 
-    @Override
-    public void deleteSubCategory(String name) {
 
-        Optional<SubCategory> subCategoryToDelete = subCategoryRepo.findSubCategoryByName(name);
-        if(subCategoryToDelete.isEmpty()) {
-            throw new NotFoundException("Subcategory with name '" + name + "' not found");
-        }
-        subCategoryRepo.delete(subCategoryToDelete.get());
+    @Override
+    public void deleteSubCategory(String name, String category) {
+        Category categoryEntity = categoryRepo.findCategoryByName(category)
+                .orElseThrow(() -> new NotFoundException("Category with name '" + category + "' not found"));
+
+        SubCategory subCategoryToDelete = subCategoryRepo.findByNameAndCategory(name, categoryEntity)
+                .orElseThrow(() -> new NotFoundException("Subcategory with name '" + name + "' not found in category '" + category + "'"));
+
+        subCategoryRepo.delete(subCategoryToDelete);
     }
+
 }
