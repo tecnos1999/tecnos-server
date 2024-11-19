@@ -1,5 +1,6 @@
 package com.example.tecnosserver.itemcategory.model;
 
+import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -41,6 +42,16 @@ public class ItemCategory {
     @JsonProperty("subcategoryName")
     public String getSubCategoryName() {
         return subCategory != null ? subCategory.getName() : null;
+    }
+
+    @ManyToOne
+    @JoinColumn(name = "category_id", nullable = false)
+    @JsonBackReference(value = "category-itemcategory")
+    private Category category;
+
+    @JsonProperty("categoryName")
+    public String getCategoryName() {
+        return category != null ? category.getName() : null;
     }
 
     @CreationTimestamp

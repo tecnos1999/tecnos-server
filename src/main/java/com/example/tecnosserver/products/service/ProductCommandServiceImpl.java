@@ -44,8 +44,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         }
 
         Optional<Category> categoryOpt = validateAndRetrieveCategory(productDTO.getCategory());
-        Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(productDTO.getSubCategory());
-        Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(productDTO.getItemCategory());
+        Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(productDTO.getSubCategory(), productDTO.getCategory());
+        Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(productDTO.getItemCategory(), productDTO.getSubCategory(), productDTO.getCategory());
 
         Product product = Product.builder()
                 .sku(productDTO.getSku())
@@ -72,6 +72,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         productRepo.save(product);
     }
 
+
     @Override
     public void updateProduct(String sku, ProductDTO updatedProductDTO) {
         Product existingProduct = productRepo.findProductBySku(sku)
@@ -80,8 +81,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         validateMandatoryFields(updatedProductDTO);
 
         Optional<Category> categoryOpt = validateAndRetrieveCategory(updatedProductDTO.getCategory());
-        Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory());
-        Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory());
+        Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory());
+        Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory(), updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory());
 
         existingProduct.setSku(updatedProductDTO.getSku());
         existingProduct.setName(updatedProductDTO.getName());
@@ -105,6 +106,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
         productRepo.save(existingProduct);
     }
+
 
     @Override
     public void deleteProduct(String sku) {
@@ -136,23 +138,28 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         return Optional.empty();
     }
 
-    private Optional<SubCategory> validateAndRetrieveSubCategory(String subCategoryName) {
-        if (subCategoryName != null && !subCategoryName.trim().isEmpty()) {
-            return subCategoryRepo.findSubCategoryByName(subCategoryName)
+    private Optional<ItemCategory> validateAndRetrieveItemCategory(String itemCategoryName, String subCategoryName, String categoryName) {
+        if (itemCategoryName != null && !itemCategoryName.trim().isEmpty() && subCategoryName != null && categoryName != null) {
+            return categoryRepo.findCategoryByName(categoryName)
+                    .flatMap(category -> subCategoryRepo.findByNameAndCategory(subCategoryName, category)
+                            .flatMap(subCategory -> itemCategoryRepo.findByNameAndSubCategoryAndCategory(itemCategoryName, subCategory, category)))
                     .or(() -> {
-                        throw new NotFoundException("Subcategory with name '" + subCategoryName + "' not found");
+                        throw new NotFoundException("Item category with name '" + itemCategoryName + "' not found in subcategory '" + subCategoryName + "' within category '" + categoryName + "'");
                     });
         }
         return Optional.empty();
     }
 
-    private Optional<ItemCategory> validateAndRetrieveItemCategory(String itemCategoryName) {
-        if (itemCategoryName != null && !itemCategoryName.trim().isEmpty()) {
-            return itemCategoryRepo.findByName(itemCategoryName)
+
+    private Optional<SubCategory> validateAndRetrieveSubCategory(String subCategoryName, String categoryName) {
+        if (subCategoryName != null && !subCategoryName.trim().isEmpty() && categoryName != null) {
+            return categoryRepo.findCategoryByName(categoryName)
+                    .flatMap(category -> subCategoryRepo.findByNameAndCategory(subCategoryName, category))
                     .or(() -> {
-                        throw new NotFoundException("Item category with name '" + itemCategoryName + "' not found");
+                        throw new NotFoundException("Subcategory with name '" + subCategoryName + "' not found in category '" + categoryName + "'");
                     });
         }
         return Optional.empty();
     }
+
 }

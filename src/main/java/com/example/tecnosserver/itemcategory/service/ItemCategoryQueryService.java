@@ -7,7 +7,9 @@ import java.util.Optional;
 
 public interface ItemCategoryQueryService {
 
-    Optional<ItemCategory> findItemCategoryByName(String name);
 
-    Optional<List<ItemCategory>> findAllItemCategories();
+
+
+    Optional<List<ItemCategory>> findAllItemCategories(String subCategoryName, String categoryName);
+
 }

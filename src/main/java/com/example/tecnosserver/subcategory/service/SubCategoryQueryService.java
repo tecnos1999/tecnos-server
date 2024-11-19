@@ -7,6 +7,5 @@ import java.util.Optional;
 
 public interface SubCategoryQueryService {
 
-        Optional<SubCategory> findSubCategoryByName(String name);
         Optional<List<SubCategory>> findAllSubCategories();
 }

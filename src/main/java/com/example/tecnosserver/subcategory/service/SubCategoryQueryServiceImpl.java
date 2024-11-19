@@ -18,14 +18,6 @@ public class SubCategoryQueryServiceImpl implements SubCategoryQueryService{
         this.subCategoryRepo = subCategoryRepo;
     }
 
-    @Override
-    public Optional<SubCategory> findSubCategoryByName(String name) {
-        Optional<SubCategory> subCategory = subCategoryRepo.findSubCategoryByName(name);
-        if (subCategory.isEmpty()) {
-            throw new NotFoundException("Sub category with name " + name + " not found");
-        }
-        return subCategory;
-    }
 
     @Override
     public Optional<List<SubCategory>> findAllSubCategories() {

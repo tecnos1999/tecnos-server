@@ -1,5 +1,6 @@
 package com.example.tecnosserver.category.model;
 
+import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.utils.MainSection;
@@ -50,6 +51,11 @@ public class Category {
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<SubCategory> subCategories;
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference(value = "category-itemcategory")
+    private List<ItemCategory> itemCategories;
+
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference(value = "category-product")

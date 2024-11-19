@@ -23,9 +23,13 @@ public class ItemCategoryControllerApi {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<String> createItemCategory(@RequestParam String name, @RequestParam String subCategory, @RequestParam String categoryName) {
+    public ResponseEntity<String> createItemCategory(
+            @RequestParam String name,
+            @RequestParam String subCategory,
+            @RequestParam String categoryName) {
         itemCategoryCommandService.createItemCategory(name, subCategory, categoryName);
-        return ResponseEntity.status(HttpStatus.CREATED).body("ItemCategory '" + name + "' created successfully.");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("ItemCategory '" + name + "' created successfully.");
     }
 
     @PutMapping("/update")
@@ -34,11 +38,19 @@ public class ItemCategoryControllerApi {
             @RequestParam String name,
             @RequestParam String updatedName,
             @RequestParam String subCategoryName,
-            @RequestParam String categoryName) {
-        itemCategoryCommandService.updateItemCategory(name, updatedName, subCategoryName, categoryName);
+            @RequestParam String categoryName,
+            @RequestParam String updatedSubCategoryName,
+            @RequestParam String updatedCategoryName) {
+
+        itemCategoryCommandService.updateItemCategory(
+                name,
+                updatedName,
+                subCategoryName,
+                categoryName,
+                updatedSubCategoryName,
+                updatedCategoryName);
         return ResponseEntity.ok("ItemCategory updated from '" + name + "' to '" + updatedName + "'.");
     }
-
 
     @DeleteMapping("/delete")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -51,16 +63,11 @@ public class ItemCategoryControllerApi {
     }
 
 
-    @GetMapping("/find")
-    public ResponseEntity<ItemCategory> findItemCategoryByName(@RequestParam String name) {
-        Optional<ItemCategory> itemCategory = itemCategoryQueryService.findItemCategoryByName(name);
-        return itemCategory.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
-    }
-
     @GetMapping("/all")
-    public ResponseEntity<List<ItemCategory>> findAllItemCategories() {
-        Optional<List<ItemCategory>> itemCategories = itemCategoryQueryService.findAllItemCategories();
+    public ResponseEntity<List<ItemCategory>> findAllItemCategories(
+            @RequestParam(required = false) String subCategoryName,
+            @RequestParam(required = false) String categoryName) {
+        Optional<List<ItemCategory>> itemCategories = itemCategoryQueryService.findAllItemCategories(subCategoryName, categoryName);
         return itemCategories.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }

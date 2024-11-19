@@ -42,12 +42,6 @@ public class SubCategoryControllerApi {
         return ResponseEntity.ok("Subcategory '" + name + "' deleted successfully.");
     }
 
-    @GetMapping("/find")
-    public ResponseEntity<SubCategory> findSubCategoryByName(@RequestParam String name) {
-        Optional<SubCategory> subCategory = subCategoryQueryService.findSubCategoryByName(name);
-        return subCategory.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
-    }
 
     @GetMapping("/all")
     public ResponseEntity<List<SubCategory>> findAllSubCategories() {

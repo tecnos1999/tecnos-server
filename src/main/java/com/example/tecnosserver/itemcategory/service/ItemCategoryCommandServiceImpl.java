@@ -10,8 +10,6 @@ import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Service
 public class ItemCategoryCommandServiceImpl implements ItemCategoryCommandService {
 
@@ -43,37 +41,57 @@ public class ItemCategoryCommandServiceImpl implements ItemCategoryCommandServic
         ItemCategory itemCategory = new ItemCategory();
         itemCategory.setName(name);
         itemCategory.setSubCategory(subCategory);
+        itemCategory.setCategory(category);
 
         itemCategoryRepository.save(itemCategory);
     }
 
 
+
+
     @Override
     @Transactional
-    public void updateItemCategory(String name, String updatedName, String subCategoryName, String categoryName) {
-        // Verificăm dacă categoria există
-        Category category = categoryRepository.findCategoryByName(categoryName)
+    public void updateItemCategory(
+            String name,
+            String updatedName,
+            String subCategoryName,
+            String categoryName,
+            String updatedSubCategoryName,
+            String updatedCategoryName) {
+
+        Category currentCategory = categoryRepository.findCategoryByName(categoryName)
                 .orElseThrow(() -> new NotFoundException("Category with name '" + categoryName + "' not found"));
 
-        SubCategory subCategory = subCategoryRepository.findByNameAndCategory(subCategoryName, category)
+        SubCategory currentSubCategory = subCategoryRepository.findByNameAndCategory(subCategoryName, currentCategory)
                 .orElseThrow(() -> new NotFoundException("SubCategory with name '" + subCategoryName + "' not found in category '" + categoryName + "'"));
 
-        boolean itemCategoryExists = itemCategoryRepository.existsByNameAndSubCategoryAndCategory(updatedName, subCategory, category);
+        Category updatedCategory = categoryRepository.findCategoryByName(updatedCategoryName)
+                .orElseThrow(() -> new NotFoundException("Updated Category with name '" + updatedCategoryName + "' not found"));
+
+        SubCategory updatedSubCategory = subCategoryRepository.findByNameAndCategory(updatedSubCategoryName, updatedCategory)
+                .orElseThrow(() -> new NotFoundException("Updated SubCategory with name '" + updatedSubCategoryName + "' not found in category '" + updatedCategoryName + "'"));
+
+        boolean itemCategoryExists = itemCategoryRepository.existsByNameAndSubCategoryAndCategory(updatedName, updatedSubCategory, updatedCategory);
         if (itemCategoryExists) {
-            throw new NotFoundException("ItemCategory with updated name '" + updatedName + "' already exists in subcategory '" + subCategoryName + "' within category '" + categoryName + "'");
+            throw new NotFoundException("ItemCategory with name '" + updatedName + "' already exists in subcategory '" + updatedSubCategoryName + "' within category '" + updatedCategoryName + "'");
         }
 
-        ItemCategory itemCategory = itemCategoryRepository.findByNameAndSubCategoryAndCategory(name, subCategory, category)
+        ItemCategory itemCategory = itemCategoryRepository.findByNameAndSubCategoryAndCategory(name, currentSubCategory, currentCategory)
                 .orElseThrow(() -> new NotFoundException("ItemCategory with name '" + name + "' not found in subcategory '" + subCategoryName + "' within category '" + categoryName + "'"));
 
         itemCategory.setName(updatedName);
+        itemCategory.setSubCategory(updatedSubCategory);
+        itemCategory.setCategory(updatedCategory);
+
         itemCategoryRepository.save(itemCategory);
     }
 
 
+
+
+
     @Override
     @Transactional
-
     public void deleteItemCategory(String name, String subCategoryName, String categoryName) {
         Category category = categoryRepository.findCategoryByName(categoryName)
                 .orElseThrow(() -> new NotFoundException("Category with name '" + categoryName + "' not found"));
@@ -86,5 +104,8 @@ public class ItemCategoryCommandServiceImpl implements ItemCategoryCommandServic
 
         itemCategoryRepository.delete(itemCategory);
     }
+
+
+
 
 }
