@@ -39,31 +39,31 @@ public class ProductControllerApi {
     }
 
     @GetMapping("/{sku}")
-    public ResponseEntity<Product> findProductBySku(@PathVariable String sku) {
-        Optional<Product> productOpt = productQueryService.findProductBySku(sku);
+    public ResponseEntity<ProductDTO> findProductBySku(@PathVariable String sku) {
+        Optional<ProductDTO> productOpt = productQueryService.findProductBySku(sku);
         return ResponseEntity.ok(productOpt.get());
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Product>> findAllProducts() {
-        Optional<List<Product>> productsOpt = productQueryService.findAllProducts();
+    public ResponseEntity<List<ProductDTO>> findAllProducts() {
+        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllProducts();
         return ResponseEntity.ok(productsOpt.get());
     }
 
     @GetMapping("/category/{category}/subcategory/{subCategory}")
-    public ResponseEntity<List<Product>> findAllByCategoryAndSubCategory(
+    public ResponseEntity<List<ProductDTO>> findAllByCategoryAndSubCategory(
             @PathVariable String category,
             @PathVariable String subCategory) {
-        Optional<List<Product>> productsOpt = productQueryService.findAllByCategoryAndSubCategory(category, subCategory);
+        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByCategoryAndSubCategory(category, subCategory);
         return ResponseEntity.ok(productsOpt.get());
     }
 
     @GetMapping("/category/{category}/subcategory/{subCategory}/item-category/{itemCategory}")
-    public ResponseEntity<List<Product>> findAllByCategoryAndSubCategoryAndItemCategory(
+    public ResponseEntity<List<ProductDTO>> findAllByCategoryAndSubCategoryAndItemCategory(
             @PathVariable String category,
             @PathVariable String subCategory,
             @PathVariable String itemCategory) {
-        Optional<List<Product>> productsOpt = productQueryService.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory);
+        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory);
         return ResponseEntity.ok(productsOpt.get());
     }
 }

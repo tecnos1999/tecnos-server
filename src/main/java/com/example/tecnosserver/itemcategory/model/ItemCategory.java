@@ -5,6 +5,7 @@ import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -64,7 +65,7 @@ public class ItemCategory {
 
 
     @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonBackReference
+    @JsonManagedReference(value = "item-category-product")
     private List<Product> products;
 }
 
