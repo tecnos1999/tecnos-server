@@ -32,7 +32,8 @@ public class Product {
     @Column(name="sku", nullable = false, unique = true)
     private String sku;
 
-    @Column(name="description", nullable = false)
+    @Column(name = "description", nullable = false, columnDefinition = "TEXT")
+    @Lob
     private String description;
 
     @Column(name="broschure")

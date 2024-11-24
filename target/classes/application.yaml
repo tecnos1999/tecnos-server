@@ -58,3 +58,6 @@ management:
 
 logs:
   destination: localhost:3100
+
+gateway:
+  url: http://localhost:8080

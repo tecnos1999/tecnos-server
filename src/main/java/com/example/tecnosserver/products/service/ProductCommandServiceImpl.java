@@ -6,6 +6,7 @@ import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.image.model.Image;
+import com.example.tecnosserver.intercom.CloudAdapter;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.itemcategory.repo.ItemCategoryRepo;
 import com.example.tecnosserver.products.dto.ProductDTO;
@@ -16,6 +17,8 @@ import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -27,12 +30,15 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private final CategoryRepo categoryRepo;
     private final SubCategoryRepo subCategoryRepo;
 
+    private final CloudAdapter cloudAdapter;
+
     public ProductCommandServiceImpl(ProductRepo productRepo, ItemCategoryRepo itemCategoryRepo,
-                                     CategoryRepo categoryRepo, SubCategoryRepo subCategoryRepo) {
+                                     CategoryRepo categoryRepo, SubCategoryRepo subCategoryRepo, CloudAdapter cloudAdapter) {
         this.productRepo = productRepo;
         this.itemCategoryRepo = itemCategoryRepo;
         this.categoryRepo = categoryRepo;
         this.subCategoryRepo = subCategoryRepo;
+        this.cloudAdapter = cloudAdapter;
     }
 
     @Override
@@ -113,8 +119,35 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         Product existingProduct = productRepo.findProductBySku(sku)
                 .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found"));
 
+        List<String> fileUrls = new ArrayList<>();
+
+        if (existingProduct.getImages() != null) {
+            fileUrls.addAll(existingProduct.getImages().stream()
+                    .map(Image::getUrl)
+                    .toList());
+        }
+
+        if (existingProduct.getBroschure() != null) {
+            fileUrls.add(existingProduct.getBroschure());
+        }
+        if (existingProduct.getTehnic() != null) {
+            fileUrls.add(existingProduct.getTehnic());
+        }
+        if (existingProduct.getCatalog() != null) {
+            fileUrls.add(existingProduct.getCatalog());
+        }
+
+        try {
+            if (!fileUrls.isEmpty()) {
+                cloudAdapter.deleteFiles(fileUrls);
+            }
+        } catch (Exception e) {
+            throw new AppException("Failed to delete associated documents from cloud");
+        }
+
         productRepo.delete(existingProduct);
     }
+
 
     private void validateMandatoryFields(ProductDTO productDTO) {
         if (productDTO.getSku() == null || productDTO.getSku().trim().isEmpty()) {

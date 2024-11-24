@@ -7,10 +7,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import java.util.Arrays;
 
 @SpringBootApplication
+@EnableFeignClients
 public class TecnosServerApplication {
 
     public static void main(String[] args) {

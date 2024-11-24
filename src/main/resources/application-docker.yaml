@@ -13,3 +13,6 @@ management:
 
 logs:
   destination: logstash:3100
+
+gateway:
+  url: http://tecnos-gateway:8080
