@@ -21,13 +21,13 @@ public class PartnerControllerApi {
     private final PartnerCommandService partnerCommandService;
     private final PartnerQueryService partnerQueryService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<String> addPartner(@Valid @RequestBody PartnerDTO partnerDTO) {
         partnerCommandService.addPartner(partnerDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body("Partner added successfully.");
     }
 
-    @DeleteMapping("/{name}")
+    @DeleteMapping("/delete/{name}")
     public ResponseEntity<String> deletePartner(@PathVariable String name) {
         partnerCommandService.deletePartner(name);
         return ResponseEntity.ok("Partner deleted successfully.");

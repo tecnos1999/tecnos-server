@@ -25,7 +25,7 @@ public class Partner {
     @Column(name = "name", nullable = false, unique = true)
     private String name;
 
-    @Column(name = "catalog_file", nullable = false)
+    @Column(name = "catalog_file")
     private String catalogFile;
 
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")

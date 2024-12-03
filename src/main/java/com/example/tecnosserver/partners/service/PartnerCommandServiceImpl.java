@@ -72,9 +72,7 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
         if (partnerDTO.name() == null || partnerDTO.name().trim().isEmpty()) {
             throw new AppException("Partner name cannot be null or empty.");
         }
-        if (partnerDTO.catalogFile() == null || partnerDTO.catalogFile().trim().isEmpty()) {
-            throw new AppException("Catalog file cannot be null or empty.");
-        }
+        
         if (partnerDTO.description() == null || partnerDTO.description().trim().isEmpty()) {
             throw new AppException("Description cannot be null or empty.");
         }

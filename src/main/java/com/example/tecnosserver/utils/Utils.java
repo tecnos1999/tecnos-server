@@ -13,10 +13,17 @@ public class Utils {
     public static final String TOKEN_CANNOT_BE_VERIFIED = "Token cannot be verified";
     public static final String MY_CODE = "MyCode";
     public static final String GET_MY_CODE_LLC = "MyCode, LLC";
-    public static final String  ADMINISTRATION = "Library Manager ";
+    public static final String ADMINISTRATION = "Library Manager ";
     public static final String AUTHORITIES = "authorities";
     public static final String FORBIDDEN_MESSAGE = "You need to log in to access this page";
     public static final String ACCESS_DENIED_MESSAGE = "You do not have permission to access this page";
     public static final String OPTIONS_HTTP_METHOD = "OPTIONS";
-    public static final String[] PUBLIC_URLS = {"/swagger-ui.html","/swagger-ui/**","/v3/**","/server/api/v1/login","/server/api/v1/register" ,"server/api/v1/category/find**", "/server/api/v1/category/findAll**", "/server/api/v1/subcategory/find**", "/server/api/v1/itemcategory/find**","/server/api/v1/subcategory/all**","/server/api/v1/product/all**","/server/api/v1/product/{sku}", "/server/api/v1/itemcategory/all**", "/server/api/v1/product/category/**"};
+    public static final String[] PUBLIC_URLS = {"/swagger-ui.html", "/swagger-ui/**",
+            "/v3/**", "/server/api/v1/login", "/server/api/v1/register",
+            "server/api/v1/category/find**", "/server/api/v1/category/findAll**",
+            "/server/api/v1/subcategory/find**", "/server/api/v1/itemcategory/find**",
+            "/server/api/v1/subcategory/all**", "/server/api/v1/product/all**",
+            "/server/api/v1/product/{sku}", "/server/api/v1/itemcategory/all**",
+            "/server/api/v1/product/category/**", "/server/api/v1/partners",
+            "/server/api/v1/partners/{name}"};
 }
