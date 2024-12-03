@@ -56,4 +56,13 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         return products.map(productMapper::mapProductsToDTOs);
     }
+
+    @Override
+    public Optional<List<ProductDTO>> findAllByPartnerName(String partnerName) {
+        Optional<List<Product>> products = productRepo.findAllByPartnerName(partnerName);
+        if (products.isEmpty()) {
+            throw new NotFoundException("No products found for partner " + partnerName);
+        }
+        return products.map(productMapper::mapProductsToDTOs);
+    }
 }

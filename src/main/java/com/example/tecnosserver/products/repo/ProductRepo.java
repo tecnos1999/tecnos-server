@@ -18,4 +18,6 @@ public interface ProductRepo extends JpaRepository<Product, Long>{
     @Query("SELECT p FROM Product p WHERE p.category.name = ?1 AND p.subCategory.name = ?2 AND p.itemCategory.name = ?3")
     Optional<List<Product>> findAllByCategoryAndSubCategoryAndItemCategory(String category, String subCategory, String itemCategory);
 
+    @Query("SELECT p FROM Product p WHERE p.partner.name = :partnerName")
+    Optional<List<Product>> findAllByPartnerName(String partnerName);
 }

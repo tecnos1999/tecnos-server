@@ -66,4 +66,10 @@ public class ProductControllerApi {
         Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory);
         return ResponseEntity.ok(productsOpt.get());
     }
+
+    @GetMapping("/partner/{partnerName}")
+    public ResponseEntity<List<ProductDTO>> findAllByPartnerName(@PathVariable String partnerName) {
+        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByPartnerName(partnerName);
+        return ResponseEntity.ok(productsOpt.get());
+    }
 }

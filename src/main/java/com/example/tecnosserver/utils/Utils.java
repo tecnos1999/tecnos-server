@@ -25,5 +25,5 @@ public class Utils {
             "/server/api/v1/subcategory/all**", "/server/api/v1/product/all**",
             "/server/api/v1/product/{sku}", "/server/api/v1/itemcategory/all**",
             "/server/api/v1/product/category/**", "/server/api/v1/partners",
-            "/server/api/v1/partners/{name}"};
+            "/server/api/v1/partners/{name}", "/server/api/v1/product/partner/{partnerName}",};
 }

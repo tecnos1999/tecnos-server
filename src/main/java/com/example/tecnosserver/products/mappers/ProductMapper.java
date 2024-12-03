@@ -34,7 +34,8 @@ public class ProductMapper {
                 product.getBroschure(),
                 product.getTehnic(),
                 product.getCatalog(),
-                product.getLinkVideo()
+                product.getLinkVideo(),
+                product.getPartner() != null ? product.getPartner().getName() : null
         );
     }
 

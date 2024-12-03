@@ -24,4 +24,6 @@ public class ProductDTO {
     private String tehnic;
     private String catalog;
     private String linkVideo;
+    private String partnerName;
+
 }

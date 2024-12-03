@@ -16,4 +16,5 @@ public interface ProductQueryService {
 
     Optional<List<ProductDTO>> findAllByCategoryAndSubCategoryAndItemCategory(String category, String subCategory, String itemCategory);
 
+    Optional<List<ProductDTO>> findAllByPartnerName(String partnerName);
 }

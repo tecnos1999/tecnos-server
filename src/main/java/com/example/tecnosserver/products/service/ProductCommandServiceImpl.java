@@ -9,6 +9,8 @@ import com.example.tecnosserver.image.model.Image;
 import com.example.tecnosserver.intercom.CloudAdapter;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.itemcategory.repo.ItemCategoryRepo;
+import com.example.tecnosserver.partners.model.Partner;
+import com.example.tecnosserver.partners.repo.PartnerRepo;
 import com.example.tecnosserver.products.dto.ProductDTO;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
@@ -30,14 +32,17 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private final CategoryRepo categoryRepo;
     private final SubCategoryRepo subCategoryRepo;
 
+    private final PartnerRepo partnerRepo;
+
     private final CloudAdapter cloudAdapter;
 
     public ProductCommandServiceImpl(ProductRepo productRepo, ItemCategoryRepo itemCategoryRepo,
-                                     CategoryRepo categoryRepo, SubCategoryRepo subCategoryRepo, CloudAdapter cloudAdapter) {
+                                     CategoryRepo categoryRepo, SubCategoryRepo subCategoryRepo, PartnerRepo partnerRepo, CloudAdapter cloudAdapter) {
         this.productRepo = productRepo;
         this.itemCategoryRepo = itemCategoryRepo;
         this.categoryRepo = categoryRepo;
         this.subCategoryRepo = subCategoryRepo;
+        this.partnerRepo = partnerRepo;
         this.cloudAdapter = cloudAdapter;
     }
 
@@ -53,6 +58,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         Optional<SubCategory> subCategoryOpt = validateAndRetrieveSubCategory(productDTO.getSubCategory(), productDTO.getCategory());
         Optional<ItemCategory> itemCategoryOpt = validateAndRetrieveItemCategory(productDTO.getItemCategory(), productDTO.getSubCategory(), productDTO.getCategory());
 
+        Partner partner = null;
+        if (productDTO.getPartnerName() != null) {
+            partner = partnerRepo.findByName(productDTO.getPartnerName())
+                    .orElseThrow(() -> new NotFoundException("Partner with name '" + productDTO.getPartnerName() + "' not found"));
+        }
+
         Product product = Product.builder()
                 .sku(productDTO.getSku())
                 .name(productDTO.getName())
@@ -64,6 +75,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .tehnic(productDTO.getTehnic())
                 .catalog(productDTO.getCatalog())
                 .linkVideo(productDTO.getLinkVideo())
+                .partner(partner)
                 .build();
 
         if (productDTO.getImages() != null && !productDTO.getImages().isEmpty()) {
@@ -77,6 +89,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
         productRepo.save(product);
     }
+
 
 
     @Override
