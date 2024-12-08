@@ -4,7 +4,7 @@ import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.intercom.CloudAdapter;
 import com.example.tecnosserver.partners.dto.PartnerDTO;
-import com.example.tecnosserver.partners.mappers.PartnerMapper;
+import com.example.tecnosserver.partners.mapper.PartnerMapper;
 import com.example.tecnosserver.partners.model.Partner;
 import com.example.tecnosserver.partners.repo.PartnerRepo;
 import lombok.RequiredArgsConstructor;

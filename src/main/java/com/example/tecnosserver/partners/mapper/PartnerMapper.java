@@ -1,4 +1,4 @@
-package com.example.tecnosserver.partners.mappers;
+package com.example.tecnosserver.partners.mapper;
 
 import com.example.tecnosserver.image.mapper.ImageMapper;
 import com.example.tecnosserver.partners.dto.PartnerDTO;

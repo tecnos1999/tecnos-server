@@ -1,4 +1,4 @@
-package com.example.tecnosserver.products.mappers;
+package com.example.tecnosserver.products.mapper;
 
 import com.example.tecnosserver.image.mapper.ImageMapper;
 import com.example.tecnosserver.products.dto.ProductDTO;

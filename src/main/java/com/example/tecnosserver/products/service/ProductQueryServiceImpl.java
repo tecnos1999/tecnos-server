@@ -2,7 +2,7 @@ package com.example.tecnosserver.products.service;
 
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.products.dto.ProductDTO;
-import com.example.tecnosserver.products.mappers.ProductMapper;
+import com.example.tecnosserver.products.mapper.ProductMapper;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
 import org.springframework.stereotype.Service;
