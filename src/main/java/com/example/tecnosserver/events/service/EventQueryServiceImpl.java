@@ -28,7 +28,10 @@ public class EventQueryServiceImpl implements EventQueryService {
         }
 
         return eventRepo.findEventByEventCode(eventCode)
-                .map(eventMapper::toDTO);
+                .map(eventMapper::toDTO)
+                .or(() -> {
+                    throw new NotFoundException("Event with code " + eventCode + " not found.");
+                });
     }
 
     @Override

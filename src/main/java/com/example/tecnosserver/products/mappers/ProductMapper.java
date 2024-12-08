@@ -1,7 +1,6 @@
 package com.example.tecnosserver.products.mappers;
 
-import com.example.tecnosserver.image.dto.ImageDTO;
-import com.example.tecnosserver.image.model.Image;
+import com.example.tecnosserver.image.mapper.ImageMapper;
 import com.example.tecnosserver.products.dto.ProductDTO;
 import com.example.tecnosserver.products.model.Product;
 import org.springframework.stereotype.Component;
@@ -11,6 +10,12 @@ import java.util.stream.Collectors;
 
 @Component
 public class ProductMapper {
+
+    private final ImageMapper imageMapper;
+
+    public ProductMapper(ImageMapper imageMapper) {
+        this.imageMapper = imageMapper;
+    }
 
     /**
      * Map a Product entity to a ProductDTO.
@@ -30,7 +35,7 @@ public class ProductMapper {
                 product.getItemCategory() != null ? product.getItemCategory().getName() : null,
                 product.getCategory() != null ? product.getCategory().getName() : null,
                 product.getSubCategory() != null ? product.getSubCategory().getName() : null,
-                mapImagesToDTOs(product.getImages()),
+                imageMapper.mapImagesToDTOs(product.getImages()),
                 product.getBroschure(),
                 product.getTehnic(),
                 product.getCatalog(),
@@ -52,22 +57,6 @@ public class ProductMapper {
 
         return products.stream()
                 .map(this::mapProductToDTO)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Map a list of Image entities to a list of ImageDTOs.
-     *
-     * @param images the list of Image entities
-     * @return the list of ImageDTOs
-     */
-    private List<ImageDTO> mapImagesToDTOs(List<Image> images) {
-        if (images == null || images.isEmpty()) {
-            return List.of();
-        }
-
-        return images.stream()
-                .map(image -> new ImageDTO(image.getUrl(), image.getType()))
                 .collect(Collectors.toList());
     }
 }
