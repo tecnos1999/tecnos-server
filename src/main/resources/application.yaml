@@ -24,6 +24,7 @@ spring:
     multipart:
       max-file-size: 1GB
       max-request-size: 1GB
+      enabled: true
 
 
 springdoc:

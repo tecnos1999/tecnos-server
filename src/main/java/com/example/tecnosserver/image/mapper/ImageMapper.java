@@ -45,7 +45,7 @@ public class ImageMapper {
      * @param imageDTO the ImageDTO
      * @return the Image entity
      */
-    public Image mapDTOToImage(ImageDTO imageDTO) {
+    public static Image mapDTOToImage(ImageDTO imageDTO) {
         if (imageDTO == null) {
             return null;
         }
