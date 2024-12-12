@@ -6,8 +6,10 @@ import com.example.tecnosserver.events.service.EventQueryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +28,19 @@ public class EventControllerApi {
         eventCommandService.addEvent(eventDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body("Event added successfully.");
     }
+
+    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> updateEvent(
+            @RequestPart("event") EventDTO eventDTO,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        try {
+            eventCommandService.updateEvent(eventDTO, image);
+            return ResponseEntity.ok("Event updated successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update event: " + e.getMessage());
+        }
+    }
+
 
     @DeleteMapping("/delete/{eventCode}")
     public ResponseEntity<String> deleteEvent(@PathVariable String eventCode) {
