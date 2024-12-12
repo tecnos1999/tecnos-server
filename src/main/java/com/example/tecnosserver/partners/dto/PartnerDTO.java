@@ -6,6 +6,12 @@ import lombok.Builder;
 import java.time.LocalDateTime;
 
 @Builder
-public record PartnerDTO(String name, String description, String catalogFile, LocalDateTime createdAt, LocalDateTime updatedAt,
-                         ImageDTO image) {
+public record PartnerDTO(
+        String name,
+        String description,
+        String catalogFile,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt,
+        ImageDTO image
+) {
 }

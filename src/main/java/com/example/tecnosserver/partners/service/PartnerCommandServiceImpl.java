@@ -1,4 +1,5 @@
 package com.example.tecnosserver.partners.service;
+
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
@@ -7,12 +8,14 @@ import com.example.tecnosserver.partners.dto.PartnerDTO;
 import com.example.tecnosserver.partners.mapper.PartnerMapper;
 import com.example.tecnosserver.partners.model.Partner;
 import com.example.tecnosserver.partners.repo.PartnerRepo;
+import com.example.tecnosserver.image.dto.ImageDTO;
+import com.example.tecnosserver.image.mapper.ImageMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,14 +27,22 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
     private final CloudAdapter cloudAdapter;
 
     @Override
-    public void addPartner(PartnerDTO partnerDTO) {
+    public void addPartner(PartnerDTO partnerDTO, MultipartFile image, MultipartFile catalogFile) {
         validatePartnerDTO(partnerDTO);
 
         if (partnerRepository.findByName(partnerDTO.name()).isPresent()) {
             throw new AlreadyExistsException("Partner with name '" + partnerDTO.name() + "' already exists.");
         }
 
+        String imageUrl = uploadFile(image, "Failed to upload image: ");
+        String catalogFileUrl = uploadFile(catalogFile, "Failed to upload catalog file: ");
+
         Partner partner = partnerMapper.fromDTO(partnerDTO);
+        if (imageUrl != null) {
+            partner.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
+        }
+        partner.setCatalogFile(catalogFileUrl);
+
         partnerRepository.save(partner);
     }
 
@@ -44,25 +55,38 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
         Partner partner = partnerRepository.findByName(name.trim())
                 .orElseThrow(() -> new NotFoundException("Partner with name '" + name + "' not found."));
 
-        List<String> fileUrls = new ArrayList<>();
-
-        if (partner.getImage() != null && partner.getImage().getUrl() != null) {
-            fileUrls.add(partner.getImage().getUrl());
-        }
-
-        if (partner.getCatalogFile() != null && !partner.getCatalogFile().trim().isEmpty()) {
-            fileUrls.add(partner.getCatalogFile());
-        }
-
-        if (!fileUrls.isEmpty()) {
-            try {
-                cloudAdapter.deleteFiles(fileUrls);
-            } catch (Exception e) {
-                throw new AppException("Failed to delete associated files from cloud: " + e.getMessage());
-            }
-        }
+        deleteFile(partner.getImage() != null ? partner.getImage().getUrl() : null, "Failed to delete associated image: ");
+        deleteFile(partner.getCatalogFile(), "Failed to delete associated catalog file: ");
 
         partnerRepository.delete(partner);
+    }
+
+    @Override
+    public void updatePartner(String name, PartnerDTO partnerDTO, MultipartFile image, MultipartFile catalogFile) {
+        validatePartnerDTO(partnerDTO);
+
+        Partner partner = partnerRepository.findByName(name.trim())
+                .orElseThrow(() -> new NotFoundException("Partner with name '" + name + "' not found."));
+
+        if (image != null && !image.isEmpty()) {
+            if (partner.getImage() != null && partner.getImage().getUrl() != null) {
+                deleteFile(partner.getImage().getUrl(), "Failed to delete old image: ");
+            }
+            String imageUrl = uploadFile(image, "Failed to upload new image: ");
+            partner.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
+        }
+
+        if (catalogFile != null && !catalogFile.isEmpty()) {
+            if (partner.getCatalogFile() != null) {
+                deleteFile(partner.getCatalogFile(), "Failed to delete old catalog file: ");
+            }
+            String catalogFileUrl = uploadFile(catalogFile, "Failed to upload new catalog file: ");
+            partner.setCatalogFile(catalogFileUrl);
+        }
+
+        partner.setDescription(partnerDTO.description());
+
+        partnerRepository.save(partner);
     }
 
     private void validatePartnerDTO(PartnerDTO partnerDTO) {
@@ -72,10 +96,29 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
         if (partnerDTO.name() == null || partnerDTO.name().trim().isEmpty()) {
             throw new AppException("Partner name cannot be null or empty.");
         }
-        
         if (partnerDTO.description() == null || partnerDTO.description().trim().isEmpty()) {
             throw new AppException("Description cannot be null or empty.");
         }
     }
-}
 
+    private String uploadFile(MultipartFile file, String errorMessage) {
+        if (file != null && !file.isEmpty()) {
+            try {
+                return cloudAdapter.uploadFile(file);
+            } catch (Exception e) {
+                throw new AppException(errorMessage + e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private void deleteFile(String fileUrl, String errorMessage) {
+        if (fileUrl != null) {
+            try {
+                cloudAdapter.deleteFile(fileUrl);
+            } catch (Exception e) {
+                throw new AppException(errorMessage + e.getMessage());
+            }
+        }
+    }
+}
