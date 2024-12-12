@@ -97,16 +97,22 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
                 } catch (Exception e) {
                     throw new AppException("Failed to delete old associated image from cloud: " + e.getMessage());
                 }
-            }
 
-            String imageUrl = null;
-            try {
-                imageUrl = cloudAdapter.uploadFile(image);
-            } catch (Exception e) {
-                throw new AppException("Failed to upload new image: " + e.getMessage());
+                try {
+                    String imageUrl = cloudAdapter.uploadFile(image);
+                    webinar.getImage().setUrl(imageUrl);
+                    webinar.getImage().setType(image.getContentType());
+                } catch (Exception e) {
+                    throw new AppException("Failed to upload new image: " + e.getMessage());
+                }
+            } else {
+                try {
+                    String imageUrl = cloudAdapter.uploadFile(image);
+                    webinar.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
+                } catch (Exception e) {
+                    throw new AppException("Failed to upload new image: " + e.getMessage());
+                }
             }
-
-            webinar.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
         }
 
         webinar.setTitle(webinarDTO.title());
@@ -115,6 +121,7 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
 
         webinarRepo.save(webinar);
     }
+
 
 
     private void validateWebinarDTO(WebinarDTO webinarDTO) {
