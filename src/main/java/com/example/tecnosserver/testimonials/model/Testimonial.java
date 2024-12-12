@@ -25,10 +25,10 @@ public class Testimonial {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "position", nullable = false)
+    @Column(name = "position")
     private String position;
 
-    @Column(name = "company", nullable = false)
+    @Column(name = "company")
     private String company;
 
     @Column(name = "testimonial", nullable = false, columnDefinition = "TEXT")

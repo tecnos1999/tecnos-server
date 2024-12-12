@@ -32,6 +32,27 @@ public class TestimonialCommandServiceImpl implements TestimonialCommandService 
     }
 
     @Override
+    public void updateTestimonial(String code, TestimonialDTO testimonialDTO) {
+        if (code == null || code.trim().isEmpty()) {
+            throw new AppException("Testimonial code cannot be null or empty.");
+        }
+
+        validateTestimonialDTO(testimonialDTO);
+
+        Testimonial testimonial = testimonialRepo.findByCode(code.trim())
+                .orElseThrow(() -> new NotFoundException("Testimonial with code '" + code + "' not found."));
+
+        testimonial.setName(testimonialDTO.name());
+        testimonial.setPosition(testimonialDTO.position());
+        testimonial.setCompany(testimonialDTO.company());
+        testimonial.setTestimonial(testimonialDTO.testimonial());
+
+
+        testimonialRepo.save(testimonial);
+    }
+
+
+    @Override
     public void deleteTestimonial(String code) {
         if (code == null || code.trim().isEmpty()) {
             throw new AppException("Testimonial code cannot be null or empty.");
@@ -50,14 +71,9 @@ public class TestimonialCommandServiceImpl implements TestimonialCommandService 
         if (testimonialDTO.name() == null || testimonialDTO.name().trim().isEmpty()) {
             throw new AppException("Testimonial name cannot be null or empty.");
         }
-        if (testimonialDTO.position() == null || testimonialDTO.position().trim().isEmpty()) {
-            throw new AppException("Testimonial position cannot be null or empty.");
-        }
-        if (testimonialDTO.company() == null || testimonialDTO.company().trim().isEmpty()) {
-            throw new AppException("Testimonial company cannot be null or empty.");
-        }
         if (testimonialDTO.testimonial() == null || testimonialDTO.testimonial().trim().isEmpty()) {
             throw new AppException("Testimonial text cannot be null or empty.");
         }
     }
+
 }

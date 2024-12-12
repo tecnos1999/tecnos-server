@@ -27,6 +27,15 @@ public class TestimonialControllerApi {
         return ResponseEntity.status(HttpStatus.CREATED).body("Testimonial added successfully.");
     }
 
+    @PutMapping("/update/{code}")
+    public ResponseEntity<String> updateTestimonial(
+            @PathVariable String code,
+            @Valid @RequestBody TestimonialDTO testimonialDTO) {
+        testimonialCommandService.updateTestimonial(code, testimonialDTO);
+        return ResponseEntity.ok("Testimonial updated successfully.");
+    }
+
+
     @DeleteMapping("/delete/{code}")
     public ResponseEntity<String> deleteTestimonial(@PathVariable String code) {
         testimonialCommandService.deleteTestimonial(code);
