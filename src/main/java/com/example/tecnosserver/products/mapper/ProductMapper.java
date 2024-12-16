@@ -38,7 +38,6 @@ public class ProductMapper {
                 imageMapper.mapImagesToDTOs(product.getImages()),
                 product.getBroschure(),
                 product.getTehnic(),
-                product.getCatalog(),
                 product.getLinkVideo(),
                 product.getPartner() != null ? product.getPartner().getName() : null
         );

@@ -22,8 +22,6 @@ public class ProductDTO {
     private List<ImageDTO> images;
     private String broschure;
     private String tehnic;
-    private String catalog;
     private String linkVideo;
     private String partnerName;
-
 }

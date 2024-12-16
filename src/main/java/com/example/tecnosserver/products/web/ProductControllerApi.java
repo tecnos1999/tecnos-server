@@ -1,15 +1,15 @@
 package com.example.tecnosserver.products.web;
 
 import com.example.tecnosserver.products.dto.ProductDTO;
-import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.service.ProductCommandService;
 import com.example.tecnosserver.products.service.ProductQueryService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin
@@ -20,15 +20,24 @@ public class ProductControllerApi {
     private final ProductCommandService productCommandService;
     private final ProductQueryService productQueryService;
 
-    @PostMapping
-    public ResponseEntity<String> createProduct(@RequestBody ProductDTO productDTO) {
-        productCommandService.createProduct(productDTO);
+    @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    public ResponseEntity<String> createProduct(
+            @RequestPart("productDTO") ProductDTO productDTO,
+            @RequestPart(value = "images", required = false) List<MultipartFile> imageFiles,
+            @RequestPart(value = "broschure", required = false) MultipartFile broschureFile,
+            @RequestPart(value = "tehnic", required = false) MultipartFile tehnicFile) {
+        productCommandService.createProduct(productDTO, imageFiles, broschureFile, tehnicFile);
         return ResponseEntity.ok("Product created successfully");
     }
 
-    @PutMapping("/{sku}")
-    public ResponseEntity<String> updateProduct(@PathVariable String sku, @RequestBody ProductDTO updatedProductDTO) {
-        productCommandService.updateProduct(sku, updatedProductDTO);
+    @PutMapping(value = "/{sku}", consumes = { "multipart/form-data" })
+    public ResponseEntity<String> updateProduct(
+            @PathVariable String sku,
+            @RequestPart("productDTO") ProductDTO updatedProductDTO,
+            @RequestPart(value = "images", required = false) List<MultipartFile> imageFiles,
+            @RequestPart(value = "broschure", required = false) MultipartFile broschureFile,
+            @RequestPart(value = "tehnic", required = false) MultipartFile tehnicFile) {
+        productCommandService.updateProduct(sku, updatedProductDTO, imageFiles, broschureFile, tehnicFile);
         return ResponseEntity.ok("Product updated successfully");
     }
 
@@ -40,22 +49,25 @@ public class ProductControllerApi {
 
     @GetMapping("/{sku}")
     public ResponseEntity<ProductDTO> findProductBySku(@PathVariable String sku) {
-        Optional<ProductDTO> productOpt = productQueryService.findProductBySku(sku);
-        return ResponseEntity.ok(productOpt.get());
+        return productQueryService.findProductBySku(sku)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("Product not found")); // Poti folosi o exceptie personalizata
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<ProductDTO>> findAllProducts() {
-        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllProducts();
-        return ResponseEntity.ok(productsOpt.get());
+        return productQueryService.findAllProducts()
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("No products found")); // Poti folosi o exceptie personalizata
     }
 
     @GetMapping("/category/{category}/subcategory/{subCategory}")
     public ResponseEntity<List<ProductDTO>> findAllByCategoryAndSubCategory(
             @PathVariable String category,
             @PathVariable String subCategory) {
-        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByCategoryAndSubCategory(category, subCategory);
-        return ResponseEntity.ok(productsOpt.get());
+        return productQueryService.findAllByCategoryAndSubCategory(category, subCategory)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("No products found for given category and subcategory"));
     }
 
     @GetMapping("/category/{category}/subcategory/{subCategory}/item-category/{itemCategory}")
@@ -63,13 +75,15 @@ public class ProductControllerApi {
             @PathVariable String category,
             @PathVariable String subCategory,
             @PathVariable String itemCategory) {
-        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory);
-        return ResponseEntity.ok(productsOpt.get());
+        return productQueryService.findAllByCategoryAndSubCategoryAndItemCategory(category, subCategory, itemCategory)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("No products found for given category, subcategory, and item category"));
     }
 
     @GetMapping("/partner/{partnerName}")
     public ResponseEntity<List<ProductDTO>> findAllByPartnerName(@PathVariable String partnerName) {
-        Optional<List<ProductDTO>> productsOpt = productQueryService.findAllByPartnerName(partnerName);
-        return ResponseEntity.ok(productsOpt.get());
+        return productQueryService.findAllByPartnerName(partnerName)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("No products found for the given partner name"));
     }
 }

@@ -43,9 +43,6 @@ public class Product {
     @Column(name="tehnic")
     private String tehnic;
 
-    @Column(name="catalog")
-    private String catalog;
-
     @Column(name="link_video")
     private String linkVideo;
 
@@ -77,6 +74,6 @@ public class Product {
     private List<Image> images;
 
     @ManyToOne
-    @JoinColumn(name = "partner_id", referencedColumnName = "id", nullable = true)
+    @JoinColumn(name = "partner_id", referencedColumnName = "id")
     private Partner partner;
 }
