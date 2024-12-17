@@ -31,7 +31,7 @@ public class EventCommandServiceImpl implements EventCommandService {
     private final CloudAdapter cloudAdapter;
 
     @Override
-    public void addEvent(EventDTO eventDTO) {
+    public void addEvent(EventDTO eventDTO, MultipartFile image) {
         validateEventDTO(eventDTO);
 
         if (eventRepo.findEventByEventCode(eventDTO.eventCode()).isPresent()) {
@@ -39,8 +39,19 @@ public class EventCommandServiceImpl implements EventCommandService {
         }
 
         Event event = eventMapper.fromDTO(eventDTO);
+
+        if (image != null && !image.isEmpty()) {
+            try {
+                String imageUrl = cloudAdapter.uploadFile(image);
+                event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
+            } catch (Exception e) {
+                throw new AppException("Failed to upload image: " + e.getMessage());
+            }
+        }
+
         eventRepo.save(event);
     }
+
 
     @Override
     public void updateEvent(EventDTO eventDTO, MultipartFile image) {

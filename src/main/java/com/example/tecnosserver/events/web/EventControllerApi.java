@@ -23,11 +23,14 @@ public class EventControllerApi {
     private final EventCommandService eventCommandService;
     private final EventQueryService eventQueryService;
 
-    @PostMapping("/create")
-    public ResponseEntity<String> addEvent(@Valid @RequestBody EventDTO eventDTO) {
-        eventCommandService.addEvent(eventDTO);
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> addEvent(
+            @RequestPart("event") @Valid EventDTO eventDTO,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        eventCommandService.addEvent(eventDTO, image);
         return ResponseEntity.status(HttpStatus.CREATED).body("Event added successfully.");
     }
+
 
     @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> updateEvent(
