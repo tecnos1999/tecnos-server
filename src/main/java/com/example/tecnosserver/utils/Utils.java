@@ -29,5 +29,6 @@ public class Utils {
             "/server/api/v1/events", "/server/api/v1/events/{eventCode}",
             "/server/api/v1/webinars", "/server/api/v1/webinars/{webCode}",
             "/server/api/v1/testimonials", "/server/api/v1/testimonials/{code}",
+            "/server/api/v1/tags", "/server/api/v1/tags/{name}",
     };
 }
