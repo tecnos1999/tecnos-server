@@ -16,6 +16,8 @@ import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
+import com.example.tecnosserver.tags.model.Tag;
+import com.example.tecnosserver.tags.repo.TagRepo;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,18 +40,21 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private final PartnerRepo partnerRepo;
     private final CloudAdapter cloudAdapter;
 
+    private final TagRepo tagRepo;
+
     public ProductCommandServiceImpl(ProductRepo productRepo,
                                      ItemCategoryRepo itemCategoryRepo,
                                      CategoryRepo categoryRepo,
                                      SubCategoryRepo subCategoryRepo,
                                      PartnerRepo partnerRepo,
-                                     CloudAdapter cloudAdapter) {
+                                     CloudAdapter cloudAdapter, TagRepo tagRepo) {
         this.productRepo = productRepo;
         this.itemCategoryRepo = itemCategoryRepo;
         this.categoryRepo = categoryRepo;
         this.subCategoryRepo = subCategoryRepo;
         this.partnerRepo = partnerRepo;
         this.cloudAdapter = cloudAdapter;
+        this.tagRepo = tagRepo;
     }
 
     @Override
@@ -81,6 +86,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                     .toList();
         }
 
+        List<Tag> tags = productDTO.getTags() != null
+                ? productDTO.getTags().stream()
+                .map(this::validateOrCreateTag)
+                .toList()
+                : List.of();
+
         Product product = Product.builder()
                 .sku(productDTO.getSku())
                 .name(productDTO.getName())
@@ -93,9 +104,15 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .linkVideo(productDTO.getLinkVideo())
                 .images(images)
                 .partner(partner)
+                .tags(tags)
                 .build();
 
         productRepo.save(product);
+    }
+
+    private Tag validateOrCreateTag(String tagName) {
+        return tagRepo.findByName(tagName)
+                .orElseGet(() -> tagRepo.save(Tag.builder().name(tagName).build()));
     }
 
     @Override
@@ -130,6 +147,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             existingProduct.getImages().addAll(newImages);
         }
 
+        List<Tag> updatedTags = updatedProductDTO.getTags() != null
+                ? updatedProductDTO.getTags().stream()
+                .map(this::validateOrCreateTag)
+                .toList()
+                : List.of();
+
 
         existingProduct.setSku(updatedProductDTO.getSku());
         existingProduct.setName(updatedProductDTO.getName());
@@ -138,6 +161,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         existingProduct.setSubCategory(subCategory);
         existingProduct.setItemCategory(itemCategory);
         existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
+        existingProduct.setTags(updatedTags);
         log.warn("Updated product: {}", existingProduct);
         productRepo.saveAndFlush(existingProduct);
         log.warn("Product updated successfully");

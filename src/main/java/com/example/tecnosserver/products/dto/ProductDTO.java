@@ -24,4 +24,5 @@ public class ProductDTO {
     private String tehnic;
     private String linkVideo;
     private String partnerName;
+    private List<String> tags;
 }

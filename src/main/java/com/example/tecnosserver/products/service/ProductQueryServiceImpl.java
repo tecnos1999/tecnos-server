@@ -65,4 +65,22 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         return products.map(productMapper::mapProductsToDTOs);
     }
+
+    @Override
+    public Optional<List<ProductDTO>> findAllByTagName(String tagName) {
+        Optional<List<Product>> products = productRepo.findAllByTagName(tagName);
+        if (products.isEmpty()) {
+            throw new NotFoundException("No products found for tag " + tagName);
+        }
+        return products.map(productMapper::mapProductsToDTOs);
+    }
+
+    @Override
+    public Optional<List<ProductDTO>> findAllByTagsName(List<String> tagNames) {
+        Optional<List<Product>> products = productRepo.findAllByTagsName(tagNames);
+        if (products.isEmpty()) {
+            throw new NotFoundException("No products found for tags " + String.join(", ", tagNames));
+        }
+        return products.map(productMapper::mapProductsToDTOs);
+    }
 }

@@ -20,4 +20,10 @@ public interface ProductRepo extends JpaRepository<Product, Long>{
 
     @Query("SELECT p FROM Product p WHERE p.partner.name = :partnerName")
     Optional<List<Product>> findAllByPartnerName(String partnerName);
+
+    @Query("SELECT p FROM Product p JOIN p.tags t WHERE t.name = :tagName")
+    Optional<List<Product>> findAllByTagName(String tagName);
+
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.tags t WHERE t.name IN :tagNames")
+    Optional<List<Product>> findAllByTagsName(List<String> tagNames);
 }

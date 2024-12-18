@@ -39,7 +39,10 @@ public class ProductMapper {
                 product.getBroschure(),
                 product.getTehnic(),
                 product.getLinkVideo(),
-                product.getPartner() != null ? product.getPartner().getName() : null
+                product.getPartner() != null ? product.getPartner().getName() : null,
+                product.getTags() != null
+                        ? product.getTags().stream().map(tag -> tag.getName()).collect(Collectors.toList())
+                        : List.of() // Map tags to a list of names or return an empty list
         );
     }
 

@@ -68,14 +68,14 @@ public class ProductControllerApi {
     public ResponseEntity<ProductDTO> findProductBySku(@PathVariable String sku) {
         return productQueryService.findProductBySku(sku)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new RuntimeException("Product not found")); // Poti folosi o exceptie personalizata
+                .orElseThrow(() -> new RuntimeException("Product not found"));
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<ProductDTO>> findAllProducts() {
         return productQueryService.findAllProducts()
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new RuntimeException("No products found")); // Poti folosi o exceptie personalizata
+                .orElseThrow(() -> new RuntimeException("No products found"));
     }
 
     @GetMapping("/category/{category}/subcategory/{subCategory}")
@@ -102,5 +102,20 @@ public class ProductControllerApi {
         return productQueryService.findAllByPartnerName(partnerName)
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new RuntimeException("No products found for the given partner name"));
+    }
+
+
+    @GetMapping("/tag/{tagName}")
+    public ResponseEntity<List<ProductDTO>> findAllByTagName(@PathVariable String tagName) {
+        return productQueryService.findAllByTagName(tagName)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("No products found for the given tag name"));
+    }
+
+    @GetMapping("/tags")
+    public ResponseEntity<List<ProductDTO>> findAllByTagsName(@RequestParam List<String> tagNames) {
+        return productQueryService.findAllByTagsName(tagNames)
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new RuntimeException("No products found for the given tags"));
     }
 }
