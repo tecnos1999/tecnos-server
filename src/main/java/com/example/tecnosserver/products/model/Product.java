@@ -5,6 +5,7 @@ import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.partners.model.Partner;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.image.model.Image;
+import com.example.tecnosserver.tags.model.Tag;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
@@ -14,6 +15,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -80,4 +82,13 @@ public class Product {
     @ManyToOne
     @JoinColumn(name = "partner_id", referencedColumnName = "id")
     private Partner partner;
+
+    @ManyToMany
+    @JoinTable(
+            name = "product_tags",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private List<Tag> tags = new ArrayList<>();
+
 }
