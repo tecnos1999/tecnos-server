@@ -1,51 +1,41 @@
 package com.example.tecnosserver.subcategory.model;
+
+import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.products.model.Product;
-import com.example.tecnosserver.category.model.Category;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity(name = "SubCategory")
+@Entity
 @Table(name = "subcategories")
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@NoArgsConstructor
-@Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@ToString
 public class SubCategory {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "subcategory_sequence")
     @SequenceGenerator(name = "subcategory_sequence", sequenceName = "subcategory_sequence", allocationSize = 1)
-    @GeneratedValue(generator = "subcategory_sequence", strategy = GenerationType.SEQUENCE)
-    @JsonIgnore
     private Long id;
 
     @Column(name = "name", nullable = false)
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "category_id",nullable = false)
-    @JsonIgnore
-    @JsonBackReference
+    @JoinColumn(name = "category_id", nullable = false)
+    @ToString.Exclude
     private Category category;
-
-    @JsonProperty("categoryName")
-    public String getCategoryName() {
-        return category != null ? category.getName() : null;
-    }
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,14 +45,11 @@ public class SubCategory {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
     @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @ToString.Exclude
     private List<ItemCategory> itemCategories;
 
     @OneToMany(mappedBy = "subCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "subcategory-product")
+    @ToString.Exclude
     private List<Product> products;
-
 }
-

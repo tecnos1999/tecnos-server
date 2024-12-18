@@ -4,13 +4,10 @@ import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.utils.MainSection;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,21 +15,22 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity(name = "Category")
+@Entity
 @Table(name = "categories")
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@NoArgsConstructor
-@Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@ToString
 public class Category {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "category_sequence")
     @SequenceGenerator(name = "category_sequence", sequenceName = "category_sequence", allocationSize = 1)
-    @GeneratedValue(generator = "category_sequence", strategy = GenerationType.SEQUENCE)
-    @JsonIgnore
     private Long id;
 
-    @Column(name = "name", nullable = false,unique = true)
+    @Column(name = "name", nullable = false, unique = true)
     private String name;
 
     @Enumerated(EnumType.STRING)
@@ -47,17 +45,15 @@ public class Category {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference
+    @ToString.Exclude
     private List<SubCategory> subCategories;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "category-itemcategory")
+    @ToString.Exclude
     private List<ItemCategory> itemCategories;
 
-
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonManagedReference(value = "category-product")
+    @ToString.Exclude
     private List<Product> products;
 }

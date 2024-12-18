@@ -1,49 +1,53 @@
 package com.example.tecnosserver.products.model;
+
 import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.partners.model.Partner;
 import com.example.tecnosserver.subcategory.model.SubCategory;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.example.tecnosserver.image.model.Image;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import com.example.tecnosserver.image.model.Image;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Entity(name = "Product")
+@Entity
 @Table(name = "products")
+@Data
+@NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@NoArgsConstructor
-@Data
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+@ToString
 public class Product {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "product_sequence")
     @SequenceGenerator(name = "product_sequence", sequenceName = "product_sequence", allocationSize = 1)
-    @GeneratedValue(generator = "product_sequence", strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(name="name", nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name="sku", nullable = false, unique = true)
+    @Column(name = "sku", nullable = false, unique = true)
     private String sku;
 
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     @Lob
     private String description;
 
-    @Column(name="broschure")
+    @Column(name = "broschure")
     private String broschure;
 
-    @Column(name="tehnic")
+    @Column(name = "tehnic")
     private String tehnic;
 
-    @Column(name="link_video")
+    @Column(name = "link_video")
     private String linkVideo;
 
     @CreationTimestamp
@@ -56,17 +60,17 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "item_category_id", referencedColumnName = "id")
-    @JsonBackReference(value = "item-category-product")
+    @ToString.Exclude
     private ItemCategory itemCategory;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
-    @JsonBackReference(value = "category-product")
+    @ToString.Exclude
     private Category category;
 
     @ManyToOne
     @JoinColumn(name = "subcategory_id")
-    @JsonBackReference(value = "subcategory-product")
+    @ToString.Exclude
     private SubCategory subCategory;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

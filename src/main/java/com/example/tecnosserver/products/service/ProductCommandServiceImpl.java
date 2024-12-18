@@ -120,9 +120,16 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         }
 
         if (newImageFiles != null && !newImageFiles.isEmpty()) {
+            if (existingProduct.getImages() != null) {
+                existingProduct.getImages().clear();
+            } else {
+                existingProduct.setImages(new ArrayList<>());
+            }
+
             List<Image> newImages = uploadAndBuildImages(newImageFiles);
-            existingProduct.setImages(newImages);
+            existingProduct.getImages().addAll(newImages);
         }
+
 
         existingProduct.setSku(updatedProductDTO.getSku());
         existingProduct.setName(updatedProductDTO.getName());
@@ -132,7 +139,8 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         existingProduct.setItemCategory(itemCategory);
         existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
         log.warn("Updated product: {}", existingProduct);
-        productRepo.save(existingProduct);
+        productRepo.saveAndFlush(existingProduct);
+        log.warn("Product updated successfully");
     }
 
     private void updateDocument(String existingUrl, MultipartFile newFile, Consumer<String> setUrl) {
@@ -146,9 +154,13 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private List<Image> uploadAndBuildImages(List<MultipartFile> imageFiles) {
         return imageFiles.stream()
                 .map(cloudAdapter::uploadFile)
-                .map(url -> Image.builder().url(url).type("product_image").build())
+                .map(url -> Image.builder()
+                        .url(url)
+                        .type("product_image")
+                        .build())
                 .toList();
     }
+
 
     @Override
     public void deleteProduct(String sku) {
