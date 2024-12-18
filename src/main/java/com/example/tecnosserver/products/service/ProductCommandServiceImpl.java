@@ -17,15 +17,18 @@ import com.example.tecnosserver.products.repo.ProductRepo;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.subcategory.repo.SubCategoryRepo;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Service
 @Transactional
+@Slf4j
 public class ProductCommandServiceImpl implements ProductCommandService {
 
     private final ProductRepo productRepo;
@@ -109,20 +112,15 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         ItemCategory itemCategory = validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory(), updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null);
 
         if (newBroschureFile != null) {
-            if (existingProduct.getBroschure() != null) cloudAdapter.deleteFile(existingProduct.getBroschure());
-            existingProduct.setBroschure(cloudAdapter.uploadFile(newBroschureFile));
+            updateDocument(existingProduct.getBroschure(), newBroschureFile, existingProduct::setBroschure);
         }
 
         if (newTehnicFile != null) {
-            if (existingProduct.getTehnic() != null) cloudAdapter.deleteFile(existingProduct.getTehnic());
-            existingProduct.setTehnic(cloudAdapter.uploadFile(newTehnicFile));
+            updateDocument(existingProduct.getTehnic(), newTehnicFile, existingProduct::setTehnic);
         }
 
         if (newImageFiles != null && !newImageFiles.isEmpty()) {
-            List<Image> newImages = newImageFiles.stream()
-                    .map(cloudAdapter::uploadFile)
-                    .map(url -> Image.builder().url(url).type("product_image").build())
-                    .toList();
+            List<Image> newImages = uploadAndBuildImages(newImageFiles);
             existingProduct.setImages(newImages);
         }
 
@@ -133,7 +131,23 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         existingProduct.setSubCategory(subCategory);
         existingProduct.setItemCategory(itemCategory);
         existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
+        log.warn("Updated product: {}", existingProduct);
         productRepo.save(existingProduct);
+    }
+
+    private void updateDocument(String existingUrl, MultipartFile newFile, Consumer<String> setUrl) {
+        if (existingUrl != null) {
+            cloudAdapter.deleteFile(existingUrl);
+        }
+        String newUrl = cloudAdapter.uploadFile(newFile);
+        setUrl.accept(newUrl);
+    }
+
+    private List<Image> uploadAndBuildImages(List<MultipartFile> imageFiles) {
+        return imageFiles.stream()
+                .map(cloudAdapter::uploadFile)
+                .map(url -> Image.builder().url(url).type("product_image").build())
+                .toList();
     }
 
     @Override
