@@ -1,6 +1,5 @@
 package com.example.tecnosserver.events.service;
 
-
 import com.example.tecnosserver.events.dto.EventDTO;
 import com.example.tecnosserver.events.mapper.EventMapper;
 import com.example.tecnosserver.events.model.Event;
@@ -16,9 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -41,17 +37,12 @@ public class EventCommandServiceImpl implements EventCommandService {
         Event event = eventMapper.fromDTO(eventDTO);
 
         if (image != null && !image.isEmpty()) {
-            try {
-                String imageUrl = cloudAdapter.uploadFile(image);
-                event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
-            } catch (Exception e) {
-                throw new AppException("Failed to upload image: " + e.getMessage());
-            }
+            String imageUrl = uploadFile(image, "Failed to upload image: ");
+            event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
         }
 
         eventRepo.save(event);
     }
-
 
     @Override
     public void updateEvent(EventDTO eventDTO, MultipartFile image) {
@@ -61,28 +52,18 @@ public class EventCommandServiceImpl implements EventCommandService {
                 .orElseThrow(() -> new NotFoundException("Event with code '" + eventDTO.eventCode() + "' not found."));
 
         if (image != null && !image.isEmpty()) {
-            if (event.getImage() != null && event.getImage().getUrl() != null) {
-                try {
-                    cloudAdapter.deleteFile(event.getImage().getUrl());
-                    log.info("Deleted old image from cloud: " + event.getImage().getUrl());
-                } catch (Exception e) {
-                    throw new AppException("Failed to delete old associated image from cloud: " + e.getMessage());
-                }
-
+            if (event.getImage() != null) {
                 try {
                     String imageUrl = cloudAdapter.uploadFile(image);
                     event.getImage().setUrl(imageUrl);
                     event.getImage().setType(image.getContentType());
+                    log.info("Updated image details in database for event: " + event.getEventCode());
                 } catch (Exception e) {
-                    throw new AppException("Failed to upload new image: " + e.getMessage());
+                    throw new AppException("Failed to upload and update image: " + e.getMessage());
                 }
             } else {
-                try {
-                    String imageUrl = cloudAdapter.uploadFile(image);
-                    event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
-                } catch (Exception e) {
-                    throw new AppException("Failed to upload new image: " + e.getMessage());
-                }
+                String imageUrl = uploadFile(image, "Failed to upload new image: ");
+                event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
             }
         }
 
@@ -94,7 +75,6 @@ public class EventCommandServiceImpl implements EventCommandService {
         eventRepo.save(event);
     }
 
-
     @Override
     public void deleteEvent(String eventCode) {
         if (eventCode == null || eventCode.trim().isEmpty()) {
@@ -104,18 +84,8 @@ public class EventCommandServiceImpl implements EventCommandService {
         Event event = eventRepo.findEventByEventCode(eventCode.trim())
                 .orElseThrow(() -> new NotFoundException("Event with code '" + eventCode + "' not found."));
 
-        List<String> fileUrls = new ArrayList<>();
-        if (event.getImage() != null && event.getImage().getUrl() != null) {
-            fileUrls.add(event.getImage().getUrl());
-        }
-
-        if (!fileUrls.isEmpty()) {
-            try {
-                cloudAdapter.deleteFiles(fileUrls);
-            } catch (Exception e) {
-                throw new AppException("Failed to delete associated files from cloud: " + e.getMessage());
-            }
-        }
+        safeDeleteFile(event.getImage() != null ? event.getImage().getUrl() : null
+        );
 
         eventRepo.delete(event);
     }
@@ -132,6 +102,28 @@ public class EventCommandServiceImpl implements EventCommandService {
         }
         if (eventDTO.externalLink() == null || eventDTO.externalLink().trim().isEmpty()) {
             throw new AppException("External link cannot be null or empty.");
+        }
+    }
+
+    private String uploadFile(MultipartFile file, String errorMessage) {
+        if (file != null && !file.isEmpty()) {
+            try {
+                return cloudAdapter.uploadFile(file);
+            } catch (Exception e) {
+                throw new AppException(errorMessage + e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private void safeDeleteFile(String fileUrl) {
+        if (fileUrl != null && !fileUrl.isBlank()) {
+            try {
+                cloudAdapter.deleteFile(fileUrl);
+                log.info("Deleted file from cloud: " + fileUrl);
+            } catch (Exception e) {
+                log.error("Failed to delete associated image: " + e.getMessage());
+            }
         }
     }
 }
