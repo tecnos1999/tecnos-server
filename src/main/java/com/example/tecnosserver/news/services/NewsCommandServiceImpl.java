@@ -6,9 +6,15 @@ import com.example.tecnosserver.news.dto.NewsDTO;
 import com.example.tecnosserver.news.mapper.NewsMapper;
 import com.example.tecnosserver.news.model.News;
 import com.example.tecnosserver.news.repo.NewsRepo;
+import com.example.tecnosserver.tags.dto.TagDTO;
+import com.example.tecnosserver.tags.model.Tag;
+import com.example.tecnosserver.tags.repo.TagRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +23,7 @@ public class NewsCommandServiceImpl implements NewsCommandService {
 
     private final NewsRepo newsRepository;
     private final NewsMapper newsMapper;
+    private final TagRepo tagRepo;
 
     @Override
     public void addNews(NewsDTO newsDTO) {
@@ -26,7 +33,10 @@ public class NewsCommandServiceImpl implements NewsCommandService {
             throw new AppException("You can only have up to 3 news articles.");
         }
 
+        List<Tag> tags = validateTagsExistence(newsDTO.getTags());
         News news = newsMapper.fromDTO(newsDTO);
+        news.setTags(tags);
+
         newsRepository.save(news);
     }
 
@@ -37,10 +47,11 @@ public class NewsCommandServiceImpl implements NewsCommandService {
         News news = newsRepository.findByCode(uniqueCode)
                 .orElseThrow(() -> new NotFoundException("News not found with code: " + uniqueCode));
 
+        List<Tag> tags = validateTagsExistence(newsDTO.getTags());
         news.setTitle(newsDTO.getTitle());
         news.setShortDescription(newsDTO.getShortDescription());
         news.setLongDescription(newsDTO.getLongDescription());
-        news.setTags(newsMapper.fromDTO(newsDTO).getTags());
+        news.setTags(tags);
         news.setIcon(newsDTO.getIcon());
 
         newsRepository.save(news);
@@ -52,6 +63,16 @@ public class NewsCommandServiceImpl implements NewsCommandService {
                 .orElseThrow(() -> new NotFoundException("News not found with code: " + uniqueCode));
 
         newsRepository.delete(news);
+    }
+
+    private List<Tag> validateTagsExistence(List<TagDTO> tagDTOs) {
+        List<Tag> tags = new ArrayList<>();
+        for (TagDTO tagDTO : tagDTOs) {
+            Tag tag = tagRepo.findByName(tagDTO.name())
+                    .orElseThrow(() -> new AppException("Tag with name '" + tagDTO.name() + "' does not exist."));
+            tags.add(tag);
+        }
+        return tags;
     }
 
     private void validateNewsInput(NewsDTO newsDTO) {
