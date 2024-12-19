@@ -4,6 +4,7 @@ package com.example.tecnosserver.news.web;
 import com.example.tecnosserver.news.dto.NewsDTO;
 import com.example.tecnosserver.news.services.NewsCommandService;
 import com.example.tecnosserver.news.services.NewsQueryService;
+import com.example.tecnosserver.utils.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,11 @@ public class NewsControllerApi {
     private final NewsQueryService newsQueryService;
 
     @PostMapping
-    public ResponseEntity<String> addNews(@RequestBody NewsDTO newsDTO) {
-        newsCommandService.addNews(newsDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("News added successfully.");
+    public ResponseEntity<NewsDTO> addNews(@RequestBody NewsDTO newsDTO) {
+        NewsDTO responseDTO = newsCommandService.addNews(newsDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
+
 
     @PutMapping("/{uniqueCode}")
     public ResponseEntity<String> updateNews(

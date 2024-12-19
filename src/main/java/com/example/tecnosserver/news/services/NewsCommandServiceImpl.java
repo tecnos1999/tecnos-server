@@ -26,7 +26,7 @@ public class NewsCommandServiceImpl implements NewsCommandService {
     private final TagRepo tagRepo;
 
     @Override
-    public void addNews(NewsDTO newsDTO) {
+    public NewsDTO addNews(NewsDTO newsDTO) {
         validateNewsInput(newsDTO);
 
         if (newsRepository.count() >= 3) {
@@ -37,8 +37,11 @@ public class NewsCommandServiceImpl implements NewsCommandService {
         News news = newsMapper.fromDTO(newsDTO);
         news.setTags(tags);
 
-        newsRepository.save(news);
+        News savedNews = newsRepository.save(news);
+
+        return newsMapper.toDTO(savedNews);
     }
+
 
     @Override
     public void updateNews(String uniqueCode, NewsDTO newsDTO) {
