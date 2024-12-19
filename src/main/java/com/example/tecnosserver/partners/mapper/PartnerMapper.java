@@ -38,7 +38,7 @@ public class PartnerMapper {
                 .name(partnerDTO.name())
                 .description(partnerDTO.description())
                 .catalogFile(partnerDTO.catalogFile())
-                .image(partnerDTO.image() != null ? imageMapper.mapDTOToImage(partnerDTO.image()) : null)
+                .image(partnerDTO.image() != null ? ImageMapper.mapDTOToImage(partnerDTO.image()) : null)
                 .build();
     }
 }

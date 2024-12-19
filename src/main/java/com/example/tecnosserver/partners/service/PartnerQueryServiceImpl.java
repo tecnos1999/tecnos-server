@@ -13,7 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class PartnerQueryServiceImpl implements PartnerQueryService{
+public class PartnerQueryServiceImpl implements PartnerQueryService {
 
     private final PartnerRepo partnerRepo;
     private final PartnerMapper partnerMapper;

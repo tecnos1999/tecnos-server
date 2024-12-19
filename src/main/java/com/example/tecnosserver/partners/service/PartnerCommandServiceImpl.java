@@ -10,11 +10,14 @@ import com.example.tecnosserver.partners.model.Partner;
 import com.example.tecnosserver.partners.repo.PartnerRepo;
 import com.example.tecnosserver.image.dto.ImageDTO;
 import com.example.tecnosserver.image.mapper.ImageMapper;
+import com.example.tecnosserver.products.model.Product;
+import com.example.tecnosserver.products.repo.ProductRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -22,6 +25,7 @@ import java.util.Optional;
 @Transactional
 public class PartnerCommandServiceImpl implements PartnerCommandService {
 
+    private final ProductRepo productRepository;
     private final PartnerRepo partnerRepository;
     private final PartnerMapper partnerMapper;
     private final CloudAdapter cloudAdapter;
@@ -55,11 +59,19 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
         Partner partner = partnerRepository.findByName(name.trim())
                 .orElseThrow(() -> new NotFoundException("Partner with name '" + name + "' not found."));
 
-        deleteFile(partner.getImage() != null ? partner.getImage().getUrl() : null, "Failed to delete associated image: ");
-        deleteFile(partner.getCatalogFile(), "Failed to delete associated catalog file: ");
-
+        Optional<List<Product>> products = productRepository.findAllByPartnerName(partner.getName());
+        if (products.isPresent()){
+            for (Product product : products.get()) {
+                product.setPartner(null);
+            }
+            productRepository.saveAll(products.get());
+        }
+        safeDeleteFile(partner.getImage() != null ? partner.getImage().getUrl() : null, "Failed to delete associated image: ");
+        safeDeleteFile(partner.getCatalogFile(), "Failed to delete associated catalog file: ");
         partnerRepository.delete(partner);
     }
+
+
 
     @Override
     public void updatePartner(String name, PartnerDTO partnerDTO, MultipartFile image, MultipartFile catalogFile) {
@@ -69,17 +81,13 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
                 .orElseThrow(() -> new NotFoundException("Partner with name '" + name + "' not found."));
 
         if (image != null && !image.isEmpty()) {
-            if (partner.getImage() != null && partner.getImage().getUrl() != null) {
-                deleteFile(partner.getImage().getUrl(), "Failed to delete old image: ");
-            }
+            safeDeleteFile(partner.getImage() != null ? partner.getImage().getUrl() : null, "Failed to delete old image: ");
             String imageUrl = uploadFile(image, "Failed to upload new image: ");
             partner.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
         }
 
         if (catalogFile != null && !catalogFile.isEmpty()) {
-            if (partner.getCatalogFile() != null) {
-                deleteFile(partner.getCatalogFile(), "Failed to delete old catalog file: ");
-            }
+            safeDeleteFile(partner.getCatalogFile(), "Failed to delete old catalog file: ");
             String catalogFileUrl = uploadFile(catalogFile, "Failed to upload new catalog file: ");
             partner.setCatalogFile(catalogFileUrl);
         }
@@ -88,6 +96,8 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
 
         partnerRepository.save(partner);
     }
+
+
 
     private void validatePartnerDTO(PartnerDTO partnerDTO) {
         if (partnerDTO == null) {
@@ -112,13 +122,14 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
         return null;
     }
 
-    private void deleteFile(String fileUrl, String errorMessage) {
-        if (fileUrl != null) {
+    private void safeDeleteFile(String fileUrl, String errorMessage) {
+        if (fileUrl != null && !fileUrl.isBlank()) {
             try {
                 cloudAdapter.deleteFile(fileUrl);
             } catch (Exception e) {
-                throw new AppException(errorMessage + e.getMessage());
+                System.err.println(errorMessage);
             }
         }
     }
+
 }
