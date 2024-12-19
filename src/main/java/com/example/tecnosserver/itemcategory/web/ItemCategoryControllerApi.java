@@ -1,5 +1,6 @@
 package com.example.tecnosserver.itemcategory.web;
 
+import com.example.tecnosserver.itemcategory.dto.ItemCategoryDTO;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.itemcategory.service.ItemCategoryCommandServiceImpl;
 import com.example.tecnosserver.itemcategory.service.ItemCategoryQueryServiceImpl;
@@ -64,10 +65,10 @@ public class ItemCategoryControllerApi {
 
 
     @GetMapping("/all")
-    public ResponseEntity<List<ItemCategory>> findAllItemCategories(
+    public ResponseEntity<List<ItemCategoryDTO>> findAllItemCategories(
             @RequestParam(required = false) String subCategoryName,
             @RequestParam(required = false) String categoryName) {
-        Optional<List<ItemCategory>> itemCategories = itemCategoryQueryService.findAllItemCategories(subCategoryName, categoryName);
+        Optional<List<ItemCategoryDTO>> itemCategories = itemCategoryQueryService.findAllItemCategories(subCategoryName, categoryName);
         return itemCategories.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }

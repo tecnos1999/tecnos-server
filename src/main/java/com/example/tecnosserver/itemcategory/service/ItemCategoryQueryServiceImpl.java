@@ -10,24 +10,36 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+
+import com.example.tecnosserver.itemcategory.dto.ItemCategoryDTO;
+import com.example.tecnosserver.itemcategory.mapper.ItemCategoryMapper;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 @Service
 public class ItemCategoryQueryServiceImpl implements ItemCategoryQueryService {
 
     private final ItemCategoryRepo itemCategoryRepository;
     private final SubCategoryRepo subCategoryRepo;
     private final CategoryRepo categoryRepo;
+    private final ItemCategoryMapper itemCategoryMapper;
 
-    public ItemCategoryQueryServiceImpl(ItemCategoryRepo itemCategoryRepository, SubCategoryRepo subCategoryRepo, CategoryRepo categoryRepo) {
+    public ItemCategoryQueryServiceImpl(ItemCategoryRepo itemCategoryRepository,
+                                        SubCategoryRepo subCategoryRepo,
+                                        CategoryRepo categoryRepo,
+                                        ItemCategoryMapper itemCategoryMapper) {
         this.itemCategoryRepository = itemCategoryRepository;
         this.subCategoryRepo = subCategoryRepo;
         this.categoryRepo = categoryRepo;
+        this.itemCategoryMapper = itemCategoryMapper;
     }
 
-
-
     @Override
-    public Optional<List<ItemCategory>> findAllItemCategories(String subCategoryName, String categoryName) {
+    public Optional<List<ItemCategoryDTO>> findAllItemCategories(String subCategoryName, String categoryName) {
         List<ItemCategory> itemCategories;
+
         if (subCategoryName != null && categoryName != null) {
             itemCategories = itemCategoryRepository.findAllBySubCategoryAndCategory(
                     subCategoryRepo.findByNameAndCategory(
@@ -49,7 +61,11 @@ public class ItemCategoryQueryServiceImpl implements ItemCategoryQueryService {
                 throw new NotFoundException("No item categories found");
             }
         }
-        return Optional.of(itemCategories);
-    }
 
+        List<ItemCategoryDTO> itemCategoryDTOs = itemCategories.stream()
+                .map(itemCategoryMapper::toDTO)
+                .collect(Collectors.toList());
+
+        return Optional.of(itemCategoryDTOs);
+    }
 }

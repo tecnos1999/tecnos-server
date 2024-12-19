@@ -1,5 +1,6 @@
 package com.example.tecnosserver.itemcategory.service;
 
+import com.example.tecnosserver.itemcategory.dto.ItemCategoryDTO;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 
 import java.util.List;
@@ -10,6 +11,5 @@ public interface ItemCategoryQueryService {
 
 
 
-    Optional<List<ItemCategory>> findAllItemCategories(String subCategoryName, String categoryName);
-
+    Optional<List<ItemCategoryDTO>> findAllItemCategories(String subCategoryName, String categoryName);
 }
