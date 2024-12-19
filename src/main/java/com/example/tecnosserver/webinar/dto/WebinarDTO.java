@@ -5,7 +5,7 @@ import lombok.Builder;
 
 import java.time.LocalDateTime;
 
-@Builder
+@Builder(toBuilder = true)
 public record WebinarDTO(String webCode,
                          String title,
                          String externalLink,

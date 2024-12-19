@@ -16,9 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -37,28 +34,16 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
             throw new AlreadyExistsException("Webinar with code '" + webinarDTO.webCode() + "' already exists.");
         }
 
-        String imageUrl = null;
-        if (image != null && !image.isEmpty()) {
-            try {
-                imageUrl = cloudAdapter.uploadFile(image);
-            } catch (Exception e) {
-                throw new AppException("Failed to upload image: " + e.getMessage());
-            }
+        String imageUrl = uploadFile(image, "Failed to upload image: ");
+        if (imageUrl != null) {
+            webinarDTO = webinarDTO.toBuilder()
+                    .image(new ImageDTO(imageUrl, image.getContentType()))
+                    .build();
         }
 
-        WebinarDTO updatedWebinarDTO = WebinarDTO.builder()
-                .webCode(webinarDTO.webCode())
-                .title(webinarDTO.title())
-                .externalLink(webinarDTO.externalLink())
-                .createdAt(webinarDTO.createdAt())
-                .updatedAt(webinarDTO.updatedAt())
-                .image(imageUrl != null ? new ImageDTO(imageUrl, image.getContentType()) : null)
-                .build();
-
-        Webinar webinar = webinarMapper.fromDTO(updatedWebinarDTO);
+        Webinar webinar = webinarMapper.fromDTO(webinarDTO);
         webinarRepo.save(webinar);
     }
-
 
     @Override
     public void deleteWebinar(String webCode) {
@@ -69,18 +54,11 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
         Webinar webinar = webinarRepo.findWebinarByWebCode(webCode.trim())
                 .orElseThrow(() -> new NotFoundException("Webinar with code '" + webCode + "' not found."));
 
-        if (webinar.getImage() != null && webinar.getImage().getUrl() != null) {
-            try {
-                cloudAdapter.deleteFile(webinar.getImage().getUrl());
-                log.info("Deleted image from cloud: " + webinar.getImage().getUrl());
-            } catch (Exception e) {
-                throw new AppException("Failed to delete associated image from cloud: " + e.getMessage());
-            }
-        }
+        safeDeleteFile(webinar.getImage() != null ? webinar.getImage().getUrl() : null,
+                "Failed to delete associated image from cloud: ");
 
         webinarRepo.delete(webinar);
     }
-
 
     @Override
     public void updateWebinar(WebinarDTO webinarDTO, MultipartFile image) {
@@ -90,12 +68,12 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
                 .orElseThrow(() -> new NotFoundException("Webinar with code '" + webinarDTO.webCode() + "' not found."));
 
         if (image != null && !image.isEmpty()) {
-            if (webinar.getImage() != null && webinar.getImage().getUrl() != null) {
+            if (webinar.getImage() != null) {
                 try {
                     cloudAdapter.deleteFile(webinar.getImage().getUrl());
                     log.info("Deleted old image from cloud: " + webinar.getImage().getUrl());
                 } catch (Exception e) {
-                    throw new AppException("Failed to delete old associated image from cloud: " + e.getMessage());
+                    log.error("Failed to delete old image from cloud: " + e.getMessage());
                 }
 
                 try {
@@ -123,7 +101,6 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
     }
 
 
-
     private void validateWebinarDTO(WebinarDTO webinarDTO) {
         if (webinarDTO == null) {
             throw new AppException("Webinar data cannot be null.");
@@ -133,6 +110,28 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
         }
         if (webinarDTO.externalLink() == null || webinarDTO.externalLink().trim().isEmpty()) {
             throw new AppException("External link cannot be null or empty.");
+        }
+    }
+
+    private String uploadFile(MultipartFile file, String errorMessage) {
+        if (file != null && !file.isEmpty()) {
+            try {
+                return cloudAdapter.uploadFile(file);
+            } catch (Exception e) {
+                throw new AppException(errorMessage + e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    private void safeDeleteFile(String fileUrl, String errorMessage) {
+        if (fileUrl != null && !fileUrl.isBlank()) {
+            try {
+                cloudAdapter.deleteFile(fileUrl);
+                log.info("Deleted file from cloud: " + fileUrl);
+            } catch (Exception e) {
+                log.error(errorMessage + e.getMessage());
+            }
         }
     }
 }
