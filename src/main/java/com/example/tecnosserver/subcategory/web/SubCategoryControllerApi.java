@@ -1,5 +1,6 @@
 package com.example.tecnosserver.subcategory.web;
 
+import com.example.tecnosserver.subcategory.dto.SubCategoryDTO;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.example.tecnosserver.subcategory.service.SubCategoryCommandServiceImpl;
 import com.example.tecnosserver.subcategory.service.SubCategoryQueryServiceImpl;
@@ -44,8 +45,8 @@ public class SubCategoryControllerApi {
 
 
     @GetMapping("/all")
-    public ResponseEntity<List<SubCategory>> findAllSubCategories() {
-        Optional<List<SubCategory>> subCategories = subCategoryQueryService.findAllSubCategories();
+    public ResponseEntity<List<SubCategoryDTO>> findAllSubCategories() {
+        Optional<List<SubCategoryDTO>> subCategories = subCategoryQueryService.findAllSubCategories();
         return subCategories.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
     }
