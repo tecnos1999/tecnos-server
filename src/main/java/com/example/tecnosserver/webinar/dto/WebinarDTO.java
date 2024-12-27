@@ -1,6 +1,5 @@
 package com.example.tecnosserver.webinar.dto;
 
-import com.example.tecnosserver.image.dto.ImageDTO;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -11,5 +10,5 @@ public record WebinarDTO(String webCode,
                          String externalLink,
                          LocalDateTime createdAt,
                          LocalDateTime updatedAt,
-                         ImageDTO image) {
+                         String imageUrl) {
 }

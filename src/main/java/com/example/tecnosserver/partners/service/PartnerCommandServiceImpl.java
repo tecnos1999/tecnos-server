@@ -7,11 +7,9 @@ import com.example.tecnosserver.intercom.CloudAdapter;
 import com.example.tecnosserver.partners.dto.PartnerDTO;
 import com.example.tecnosserver.partners.mapper.PartnerMapper;
 import com.example.tecnosserver.partners.model.Partner;
-import com.example.tecnosserver.partners.repo.PartnerRepo;
-import com.example.tecnosserver.image.dto.ImageDTO;
-import com.example.tecnosserver.image.mapper.ImageMapper;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
+import com.example.tecnosserver.partners.repo.PartnerRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,9 +40,7 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
         String catalogFileUrl = uploadFile(catalogFile, "Failed to upload catalog file: ");
 
         Partner partner = partnerMapper.fromDTO(partnerDTO);
-        if (imageUrl != null) {
-            partner.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
-        }
+        partner.setImageUrl(imageUrl);
         partner.setCatalogFile(catalogFileUrl);
 
         partnerRepository.save(partner);
@@ -60,18 +56,17 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
                 .orElseThrow(() -> new NotFoundException("Partner with name '" + name + "' not found."));
 
         Optional<List<Product>> products = productRepository.findAllByPartnerName(partner.getName());
-        if (products.isPresent()){
+        if (products.isPresent()) {
             for (Product product : products.get()) {
                 product.setPartner(null);
             }
             productRepository.saveAll(products.get());
         }
-        safeDeleteFile(partner.getImage() != null ? partner.getImage().getUrl() : null, "Failed to delete associated image: ");
+
+        safeDeleteFile(partner.getImageUrl(), "Failed to delete associated image: ");
         safeDeleteFile(partner.getCatalogFile(), "Failed to delete associated catalog file: ");
         partnerRepository.delete(partner);
     }
-
-
 
     @Override
     public void updatePartner(String name, PartnerDTO partnerDTO, MultipartFile image, MultipartFile catalogFile) {
@@ -81,9 +76,9 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
                 .orElseThrow(() -> new NotFoundException("Partner with name '" + name + "' not found."));
 
         if (image != null && !image.isEmpty()) {
-            safeDeleteFile(partner.getImage() != null ? partner.getImage().getUrl() : null, "Failed to delete old image: ");
+            safeDeleteFile(partner.getImageUrl(), "Failed to delete old image: ");
             String imageUrl = uploadFile(image, "Failed to upload new image: ");
-            partner.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
+            partner.setImageUrl(imageUrl);
         }
 
         if (catalogFile != null && !catalogFile.isEmpty()) {
@@ -96,8 +91,6 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
 
         partnerRepository.save(partner);
     }
-
-
 
     private void validatePartnerDTO(PartnerDTO partnerDTO) {
         if (partnerDTO == null) {
@@ -127,9 +120,8 @@ public class PartnerCommandServiceImpl implements PartnerCommandService {
             try {
                 cloudAdapter.deleteFile(fileUrl);
             } catch (Exception e) {
-                System.err.println(errorMessage);
+                System.err.println(errorMessage + e.getMessage());
             }
         }
     }
-
 }

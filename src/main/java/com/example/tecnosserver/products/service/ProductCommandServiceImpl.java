@@ -5,7 +5,6 @@ import com.example.tecnosserver.category.repo.CategoryRepo;
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
-import com.example.tecnosserver.image.model.Image;
 import com.example.tecnosserver.intercom.CloudAdapter;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.itemcategory.repo.ItemCategoryRepo;
@@ -23,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -39,7 +37,6 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     private final SubCategoryRepo subCategoryRepo;
     private final PartnerRepo partnerRepo;
     private final CloudAdapter cloudAdapter;
-
     private final TagRepo tagRepo;
 
     public ProductCommandServiceImpl(ProductRepo productRepo,
@@ -78,18 +75,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         String broschureUrl = broschureFile != null ? cloudAdapter.uploadFile(broschureFile) : null;
         String tehnicUrl = tehnicFile != null ? cloudAdapter.uploadFile(tehnicFile) : null;
 
-        List<Image> images = new ArrayList<>();
-        if (imageFiles != null && !imageFiles.isEmpty()) {
-            images = imageFiles.stream()
-                    .map(cloudAdapter::uploadFile)
-                    .map(url -> Image.builder().url(url).type("product_image").build())
-                    .toList();
-        }
+        List<String> imageUrls = imageFiles != null
+                ? imageFiles.stream().map(cloudAdapter::uploadFile).toList()
+                : List.of();
 
         List<Tag> tags = productDTO.getTags() != null
-                ? productDTO.getTags().stream()
-                .map(this::validateOrCreateTag)
-                .toList()
+                ? productDTO.getTags().stream().map(this::validateOrCreateTag).toList()
                 : List.of();
 
         Product product = Product.builder()
@@ -102,17 +93,12 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 .broschure(broschureUrl)
                 .tehnic(tehnicUrl)
                 .linkVideo(productDTO.getLinkVideo())
-                .images(images)
+                .images(imageUrls)
                 .partner(partner)
                 .tags(tags)
                 .build();
 
         productRepo.save(product);
-    }
-
-    private Tag validateOrCreateTag(String tagName) {
-        return tagRepo.findByName(tagName)
-                .orElseGet(() -> tagRepo.save(Tag.builder().name(tagName).build()));
     }
 
     @Override
@@ -136,25 +122,19 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             updateDocument(existingProduct.getTehnic(), newTehnicFile, existingProduct::setTehnic);
         }
 
-        if (newImageFiles != null && !newImageFiles.isEmpty()) {
-            if (existingProduct.getImages() != null) {
-                existingProduct.getImages().clear();
-            } else {
-                existingProduct.setImages(new ArrayList<>());
-            }
+        if (updatedProductDTO.getImagesToRemove() != null && !updatedProductDTO.getImagesToRemove().isEmpty()) {
+            existingProduct.getImages().removeAll(updatedProductDTO.getImagesToRemove());
+        }
 
-            List<Image> newImages = uploadAndBuildImages(newImageFiles);
-            existingProduct.getImages().addAll(newImages);
+        if (newImageFiles != null && !newImageFiles.isEmpty()) {
+            List<String> newImageUrls = newImageFiles.stream().map(cloudAdapter::uploadFile).toList();
+            existingProduct.getImages().addAll(newImageUrls);
         }
 
         List<Tag> updatedTags = updatedProductDTO.getTags() != null
-                ? updatedProductDTO.getTags().stream()
-                .map(this::validateOrCreateTag)
-                .toList()
+                ? updatedProductDTO.getTags().stream().map(this::validateOrCreateTag).toList()
                 : List.of();
 
-
-        existingProduct.setSku(updatedProductDTO.getSku());
         existingProduct.setName(updatedProductDTO.getName());
         existingProduct.setDescription(updatedProductDTO.getDescription());
         existingProduct.setCategory(category);
@@ -162,9 +142,59 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         existingProduct.setItemCategory(itemCategory);
         existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
         existingProduct.setTags(updatedTags);
-        log.warn("Updated product: {}", existingProduct);
-        productRepo.saveAndFlush(existingProduct);
-        log.warn("Product updated successfully");
+
+        productRepo.save(existingProduct);
+    }
+
+    @Override
+    public void deleteProduct(String sku) {
+        if (sku == null || sku.trim().isEmpty()) {
+            throw new AppException("Product SKU cannot be null or empty.");
+        }
+
+        Product product = productRepo.findProductBySku(sku.trim())
+                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found."));
+
+        if (product.getBroschure() != null) {
+            safeDeleteFile(product.getBroschure());
+        }
+        if (product.getTehnic() != null) {
+            safeDeleteFile(product.getTehnic());
+        }
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            product.getImages().forEach(this::safeDeleteFile);
+        }
+
+        productRepo.delete(product);
+
+        log.info("Product with SKU '{}' was successfully deleted.", sku);
+    }
+
+
+    private void safeDeleteFile(String fileUrl) {
+        if (fileUrl != null && !fileUrl.isBlank()) {
+            try {
+                cloudAdapter.deleteFile(fileUrl);
+                log.info("File successfully deleted: {}", fileUrl);
+            } catch (Exception e) {
+                log.error("Failed to delete file: {}", fileUrl, e);
+            }
+        }
+    }
+
+
+    private void validateMandatoryFields(ProductDTO productDTO) {
+        if (productDTO.getSku() == null || productDTO.getSku().isBlank())
+            throw new AppException("SKU cannot be null or empty");
+        if (productDTO.getName() == null || productDTO.getName().isBlank())
+            throw new AppException("Product name cannot be null or empty");
+        if (productDTO.getDescription() == null || productDTO.getDescription().isBlank())
+            throw new AppException("Description cannot be null or empty");
+    }
+
+    private Tag validateOrCreateTag(String tagName) {
+        return tagRepo.findByName(tagName)
+                .orElseGet(() -> tagRepo.save(Tag.builder().name(tagName).build()));
     }
 
     private void updateDocument(String existingUrl, MultipartFile newFile, Consumer<String> setUrl) {
@@ -173,31 +203,6 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         }
         String newUrl = cloudAdapter.uploadFile(newFile);
         setUrl.accept(newUrl);
-    }
-
-    private List<Image> uploadAndBuildImages(List<MultipartFile> imageFiles) {
-        return imageFiles.stream()
-                .map(cloudAdapter::uploadFile)
-                .map(url -> Image.builder()
-                        .url(url)
-                        .type("product_image")
-                        .build())
-                .toList();
-    }
-
-
-    @Override
-    public void deleteProduct(String sku) {
-        Product product = productRepo.findProductBySku(sku)
-                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found"));
-
-        List<String> filesToDelete = new ArrayList<>();
-        if (product.getBroschure() != null) filesToDelete.add(product.getBroschure());
-        if (product.getTehnic() != null) filesToDelete.add(product.getTehnic());
-        filesToDelete.addAll(product.getImages().stream().map(Image::getUrl).toList());
-
-        cloudAdapter.deleteFiles(filesToDelete);
-        productRepo.delete(product);
     }
 
     private Optional<Category> validateAndRetrieveCategory(String categoryName) {
@@ -215,14 +220,5 @@ public class ProductCommandServiceImpl implements ProductCommandService {
         return itemCategoryRepo.findByNameAndSubCategoryAndCategory(itemCategoryName,
                 validateAndRetrieveSubCategory(subCategoryName, categoryName).orElseThrow(),
                 validateAndRetrieveCategory(categoryName).orElseThrow());
-    }
-
-    private void validateMandatoryFields(ProductDTO productDTO) {
-        if (productDTO.getSku() == null || productDTO.getSku().isBlank())
-            throw new AppException("SKU cannot be null or empty");
-        if (productDTO.getName() == null || productDTO.getName().isBlank())
-            throw new AppException("Product name cannot be null or empty");
-        if (productDTO.getDescription() == null || productDTO.getDescription().isBlank())
-            throw new AppException("Description cannot be null or empty");
     }
 }

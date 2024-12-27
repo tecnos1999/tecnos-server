@@ -1,12 +1,12 @@
 package com.example.tecnosserver.partners.model;
 
-import com.example.tecnosserver.image.model.Image;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.awt.*;
 import java.time.LocalDateTime;
 
 @Entity(name = "Partner")
@@ -40,7 +40,6 @@ public class Partner {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
-    private Image image;
+    @Column(name = "image_url", nullable = true)
+    private String imageUrl;
 }

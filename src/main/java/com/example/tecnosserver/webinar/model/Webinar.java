@@ -1,7 +1,6 @@
 package com.example.tecnosserver.webinar.model;
 
 
-import com.example.tecnosserver.image.model.Image;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -41,9 +40,8 @@ public class Webinar {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
-    private Image image;
+    @Column(name = "image_url", nullable = true)
+    private String imageUrl;
 
     @PrePersist
     protected void onCreate() {

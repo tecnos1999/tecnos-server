@@ -3,8 +3,6 @@ package com.example.tecnosserver.webinar.service;
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
-import com.example.tecnosserver.image.dto.ImageDTO;
-import com.example.tecnosserver.image.mapper.ImageMapper;
 import com.example.tecnosserver.intercom.CloudAdapter;
 import com.example.tecnosserver.webinar.dto.WebinarDTO;
 import com.example.tecnosserver.webinar.mapper.WebinarMapper;
@@ -35,13 +33,12 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
         }
 
         String imageUrl = uploadFile(image, "Failed to upload image: ");
+        Webinar webinar = webinarMapper.fromDTO(webinarDTO);
+
         if (imageUrl != null) {
-            webinarDTO = webinarDTO.toBuilder()
-                    .image(new ImageDTO(imageUrl, image.getContentType()))
-                    .build();
+            webinar.setImageUrl(imageUrl);
         }
 
-        Webinar webinar = webinarMapper.fromDTO(webinarDTO);
         webinarRepo.save(webinar);
     }
 
@@ -54,8 +51,7 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
         Webinar webinar = webinarRepo.findWebinarByWebCode(webCode.trim())
                 .orElseThrow(() -> new NotFoundException("Webinar with code '" + webCode + "' not found."));
 
-        safeDeleteFile(webinar.getImage() != null ? webinar.getImage().getUrl() : null,
-                "Failed to delete associated image from cloud: ");
+        safeDeleteFile(webinar.getImageUrl(), "Failed to delete associated image from cloud: ");
 
         webinarRepo.delete(webinar);
     }
@@ -68,29 +64,9 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
                 .orElseThrow(() -> new NotFoundException("Webinar with code '" + webinarDTO.webCode() + "' not found."));
 
         if (image != null && !image.isEmpty()) {
-            if (webinar.getImage() != null) {
-                try {
-                    cloudAdapter.deleteFile(webinar.getImage().getUrl());
-                    log.info("Deleted old image from cloud: " + webinar.getImage().getUrl());
-                } catch (Exception e) {
-                    log.error("Failed to delete old image from cloud: " + e.getMessage());
-                }
-
-                try {
-                    String imageUrl = cloudAdapter.uploadFile(image);
-                    webinar.getImage().setUrl(imageUrl);
-                    webinar.getImage().setType(image.getContentType());
-                } catch (Exception e) {
-                    throw new AppException("Failed to upload new image: " + e.getMessage());
-                }
-            } else {
-                try {
-                    String imageUrl = cloudAdapter.uploadFile(image);
-                    webinar.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
-                } catch (Exception e) {
-                    throw new AppException("Failed to upload new image: " + e.getMessage());
-                }
-            }
+            safeDeleteFile(webinar.getImageUrl(), "Failed to delete old image from cloud: ");
+            String imageUrl = uploadFile(image, "Failed to upload new image: ");
+            webinar.setImageUrl(imageUrl);
         }
 
         webinar.setTitle(webinarDTO.title());
@@ -99,7 +75,6 @@ public class WebinarCommandServiceImpl implements WebinarCommandService {
 
         webinarRepo.save(webinar);
     }
-
 
     private void validateWebinarDTO(WebinarDTO webinarDTO) {
         if (webinarDTO == null) {

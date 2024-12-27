@@ -1,7 +1,5 @@
 package com.example.tecnosserver.events.dto;
 
-
-import com.example.tecnosserver.image.dto.ImageDTO;
 import lombok.Builder;
 
 import java.time.LocalDateTime;
@@ -14,6 +12,5 @@ public record EventDTO(
         String externalLink,
         LocalDateTime createdAt,
         LocalDateTime updatedAt,
-        ImageDTO image
+        String imageUrl
 ) {}
-

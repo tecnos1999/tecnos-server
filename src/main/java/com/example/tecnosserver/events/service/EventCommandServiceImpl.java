@@ -7,8 +7,6 @@ import com.example.tecnosserver.events.repo.EventRepo;
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
-import com.example.tecnosserver.image.dto.ImageDTO;
-import com.example.tecnosserver.image.mapper.ImageMapper;
 import com.example.tecnosserver.intercom.CloudAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +36,7 @@ public class EventCommandServiceImpl implements EventCommandService {
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = uploadFile(image, "Failed to upload image: ");
-            event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
+            event.setImageUrl(imageUrl);
         }
 
         eventRepo.save(event);
@@ -52,19 +50,9 @@ public class EventCommandServiceImpl implements EventCommandService {
                 .orElseThrow(() -> new NotFoundException("Event with code '" + eventDTO.eventCode() + "' not found."));
 
         if (image != null && !image.isEmpty()) {
-            if (event.getImage() != null) {
-                try {
-                    String imageUrl = cloudAdapter.uploadFile(image);
-                    event.getImage().setUrl(imageUrl);
-                    event.getImage().setType(image.getContentType());
-                    log.info("Updated image details in database for event: " + event.getEventCode());
-                } catch (Exception e) {
-                    throw new AppException("Failed to upload and update image: " + e.getMessage());
-                }
-            } else {
-                String imageUrl = uploadFile(image, "Failed to upload new image: ");
-                event.setImage(ImageMapper.mapDTOToImage(new ImageDTO(imageUrl, image.getContentType())));
-            }
+            safeDeleteFile(event.getImageUrl());
+            String imageUrl = uploadFile(image, "Failed to upload new image: ");
+            event.setImageUrl(imageUrl);
         }
 
         event.setTitle(eventDTO.title());
@@ -84,8 +72,7 @@ public class EventCommandServiceImpl implements EventCommandService {
         Event event = eventRepo.findEventByEventCode(eventCode.trim())
                 .orElseThrow(() -> new NotFoundException("Event with code '" + eventCode + "' not found."));
 
-        safeDeleteFile(event.getImage() != null ? event.getImage().getUrl() : null
-        );
+        safeDeleteFile(event.getImageUrl());
 
         eventRepo.delete(event);
     }

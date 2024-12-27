@@ -1,6 +1,5 @@
 package com.example.tecnosserver.products.dto;
 
-import com.example.tecnosserver.image.dto.ImageDTO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,7 +18,9 @@ public class ProductDTO {
     private String itemCategory;
     private String category;
     private String subCategory;
-    private List<ImageDTO> images;
+    private List<String> images;
+    private List<String> imagesToKeep;
+    private List<String> imagesToRemove;
     private String broschure;
     private String tehnic;
     private String linkVideo;

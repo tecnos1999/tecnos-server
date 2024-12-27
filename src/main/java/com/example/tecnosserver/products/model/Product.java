@@ -4,7 +4,6 @@ import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.partners.model.Partner;
 import com.example.tecnosserver.subcategory.model.SubCategory;
-import com.example.tecnosserver.image.model.Image;
 import com.example.tecnosserver.tags.model.Tag;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
@@ -75,9 +74,10 @@ public class Product {
     @ToString.Exclude
     private SubCategory subCategory;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "product_id")
-    private List<Image> images;
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
+    private List<String> images = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "partner_id", referencedColumnName = "id")
