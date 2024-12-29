@@ -102,6 +102,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     }
 
     @Override
+    @Transactional
     public void updateProduct(String sku, ProductDTO updatedProductDTO,
                               List<MultipartFile> newImageFiles,
                               MultipartFile newBroschureFile, MultipartFile newTehnicFile) {
@@ -110,41 +111,57 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
         validateMandatoryFields(updatedProductDTO);
 
-        Category category = validateAndRetrieveCategory(updatedProductDTO.getCategory()).orElse(null);
-        SubCategory subCategory = validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null);
-        ItemCategory itemCategory = validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory(), updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null);
+        try {
+            // Ștergere imagini specifice
+            if (updatedProductDTO.getImagesToRemove() != null && !updatedProductDTO.getImagesToRemove().isEmpty()) {
+                updatedProductDTO.getImagesToRemove().forEach(imageUrl -> {
+                    if (existingProduct.getImages().remove(imageUrl)) {
+                        safeDeleteFile(imageUrl); // Șterge din cloud
+                    }
+                });
 
-        if (newBroschureFile != null) {
+                // Forțează sincronizarea modificărilor cu baza de date
+                productRepo.saveAndFlush(existingProduct);
+            }
+
+            // Adaugă imagini noi
+            if (newImageFiles != null && !newImageFiles.isEmpty()) {
+                List<String> newImageUrls = newImageFiles.stream()
+                        .map(cloudAdapter::uploadFile)
+                        .toList();
+                existingProduct.getImages().addAll(newImageUrls);
+            }
+
+            // Elimină duplicatele
+            existingProduct.setImages(existingProduct.getImages().stream().distinct().toList());
+
+            // Actualizează alte detalii
             updateDocument(existingProduct.getBroschure(), newBroschureFile, existingProduct::setBroschure);
-        }
-
-        if (newTehnicFile != null) {
             updateDocument(existingProduct.getTehnic(), newTehnicFile, existingProduct::setTehnic);
+
+            existingProduct.setName(updatedProductDTO.getName());
+            existingProduct.setDescription(updatedProductDTO.getDescription());
+            existingProduct.setCategory(validateAndRetrieveCategory(updatedProductDTO.getCategory()).orElse(null));
+            existingProduct.setSubCategory(validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null));
+            existingProduct.setItemCategory(validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory(), updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null));
+            existingProduct.setTags(updatedProductDTO.getTags() != null
+                    ? updatedProductDTO.getTags().stream().map(this::validateOrCreateTag).toList()
+                    : List.of());
+            existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
+
+            // Salvează modificările
+            productRepo.save(existingProduct);
+
+            log.info("Product with SKU '{}' was successfully updated.", sku);
+        } catch (Exception ex) {
+            log.error("Failed to update product with SKU '{}'. Rolling back changes.", sku, ex);
+            throw new AppException("An error occurred while updating the product. Transaction rolled back.");
         }
-
-        if (updatedProductDTO.getImagesToRemove() != null && !updatedProductDTO.getImagesToRemove().isEmpty()) {
-            existingProduct.getImages().removeAll(updatedProductDTO.getImagesToRemove());
-        }
-
-        if (newImageFiles != null && !newImageFiles.isEmpty()) {
-            List<String> newImageUrls = newImageFiles.stream().map(cloudAdapter::uploadFile).toList();
-            existingProduct.getImages().addAll(newImageUrls);
-        }
-
-        List<Tag> updatedTags = updatedProductDTO.getTags() != null
-                ? updatedProductDTO.getTags().stream().map(this::validateOrCreateTag).toList()
-                : List.of();
-
-        existingProduct.setName(updatedProductDTO.getName());
-        existingProduct.setDescription(updatedProductDTO.getDescription());
-        existingProduct.setCategory(category);
-        existingProduct.setSubCategory(subCategory);
-        existingProduct.setItemCategory(itemCategory);
-        existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
-        existingProduct.setTags(updatedTags);
-
-        productRepo.save(existingProduct);
     }
+
+
+
+
 
     @Override
     public void deleteProduct(String sku) {
