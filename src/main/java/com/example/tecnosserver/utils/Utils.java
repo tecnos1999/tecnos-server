@@ -31,6 +31,9 @@ public class Utils {
             "/server/api/v1/testimonials", "/server/api/v1/testimonials/{code}",
             "/server/api/v1/tags", "/server/api/v1/tags/{name}",
             "/server/api/v1/product/tag/{tagName}", "/server/api/v1/product/tags",
-            "/server/api/v1/news", "/server/api/v1/news/{uniqueCode}"
+            "/server/api/v1/news", "/server/api/v1/news/{uniqueCode} ",
+            "/server/api/v1/carousel" , "/server/api/v1/carousel/videos",
+            "/server/api/v1/carousel/images" , "/server/api/v1/carousel/orderd",
+            "/server/api/v1/motto", "/server/api/v1/motto/{code}",
     };
 }

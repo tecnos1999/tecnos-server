@@ -1,7 +1,7 @@
-package com.example.tecnosserver.carousel.model;
+package com.example.tecnosserver.motto.model;
+
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -9,26 +9,23 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "carousel")
+@Table(name = "motto")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
-public class Carousel {
+@Builder
+public class Motto {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "carousel_sequence")
-    @SequenceGenerator(name = "carousel_sequence", sequenceName = "carousel_sequence", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "motto_sequence")
+    @SequenceGenerator(name = "motto_sequence", sequenceName = "motto_sequence", allocationSize = 1)
     private Long id;
 
     @Column(name = "code", nullable = false, unique = true, updatable = false)
     private String code;
 
-    @Column(name = "file_url", nullable = false)
-    private String fileUrl;
-
-    @Column(name = "type", nullable = false)
-    private String type;
+    @Column(name = "content", nullable = false)
+    private String content;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -45,4 +42,3 @@ public class Carousel {
         }
     }
 }
-
