@@ -34,7 +34,6 @@ public class Series {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "series_id")
+    @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Blog> blogs = new ArrayList<>();
 }

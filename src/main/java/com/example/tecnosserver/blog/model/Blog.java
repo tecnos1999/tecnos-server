@@ -1,6 +1,7 @@
 package com.example.tecnosserver.blog.model;
 
 import com.example.tecnosserver.caption.model.Caption;
+import com.example.tecnosserver.series.model.Series;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -43,8 +44,11 @@ public class Blog {
     @Column(name = "view_url")
     private String viewUrl;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "blog_id")
+    @ManyToOne
+    @JoinColumn(name = "series_id", nullable = false)
+    private Series series;
+
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Caption> captions = new ArrayList<>();
 
     @CreationTimestamp
