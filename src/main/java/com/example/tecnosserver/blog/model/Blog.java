@@ -45,11 +45,14 @@ public class Blog {
     private String viewUrl;
 
     @ManyToOne
-    @JoinColumn(name = "series_id", nullable = false)
+    @JoinColumn(name = "series_id")
     private Series series;
 
     @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Caption> captions = new ArrayList<>();
+
+    @Column(name = "active", nullable = false)
+    private boolean active = false;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -10,5 +10,7 @@ public record BlogDTO(
         String broschureUrl,
         String viewUrl,
         String seriesCode,
+
+        boolean active,
         List<String> captionCodes
 ) {}

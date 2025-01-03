@@ -9,12 +9,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 @RequiredArgsConstructor
+@Component
 public class BlogMapper {
 
     private final CaptionRepo captionRepo;
-
 
     public BlogDTO toDTO(Blog blog) {
         return new BlogDTO(
@@ -24,15 +23,15 @@ public class BlogMapper {
                 blog.getMainPhotoUrl(),
                 blog.getBroschureUrl(),
                 blog.getViewUrl(),
-                blog.getSeries().getCode(),
-                blog.getCaptions().stream()
-                        .map(Caption::getCode)
-                        .toList()
+                blog.getSeries() != null ? blog.getSeries().getCode() : null,
+                blog.isActive(),
+                blog.getCaptions() != null
+                        ? blog.getCaptions().stream().map(Caption::getCode).toList()
+                        : List.of()
         );
     }
 
     public Blog fromDTO(BlogDTO blogDTO) {
-
         Blog blog = Blog.builder()
                 .code(blogDTO.code())
                 .title(blogDTO.title())
@@ -40,15 +39,15 @@ public class BlogMapper {
                 .mainPhotoUrl(blogDTO.mainPhotoUrl())
                 .broschureUrl(blogDTO.broschureUrl())
                 .viewUrl(blogDTO.viewUrl())
+                .active(blogDTO.active())
                 .build();
 
         if (blogDTO.captionCodes() != null && !blogDTO.captionCodes().isEmpty()) {
-            List<Caption> retrievedCaptions = captionRepo.findByCodeIn(blogDTO.captionCodes())
-                    .orElse(List.of());
-            blog.setCaptions(retrievedCaptions);
+            List<Caption> captions = captionRepo.findByCodeIn(blogDTO.captionCodes())
+                    .orElseThrow(() -> new RuntimeException("Some captions not found"));
+            blog.setCaptions(captions);
         }
 
         return blog;
     }
-
 }
