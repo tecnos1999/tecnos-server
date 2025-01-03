@@ -36,5 +36,6 @@ public class Utils {
             "/server/api/v1/carousel/images" , "/server/api/v1/carousel/orderd",
             "/server/api/v1/motto", "/server/api/v1/motto/{code}",
             "/server/api/v1/captions", "/server/api/v1/captions/{code}",
+            "/server/api/v1/blogs", "/server/api/v1/blogs/{blogCode}",
     };
 }
