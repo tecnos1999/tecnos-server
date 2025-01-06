@@ -25,8 +25,9 @@ public class BlogControllerApi {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> addBlog(
             @RequestPart("blog") @Valid BlogDTO blogDTO,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
-        blogCommandService.addBlog(blogDTO, image);
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "broschure", required = false) MultipartFile broschure) {
+        blogCommandService.addBlog(blogDTO, image, broschure);
         return ResponseEntity.status(HttpStatus.CREATED).body("Blog added successfully.");
     }
 
@@ -34,14 +35,17 @@ public class BlogControllerApi {
     public ResponseEntity<String> updateBlog(
             @PathVariable String blogCode,
             @RequestPart("blog") BlogDTO blogDTO,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "broschure", required = false) MultipartFile broschure) {
         try {
-            blogCommandService.updateBlog(blogCode, blogDTO, image);
+            blogCommandService.updateBlog(blogCode, blogDTO, image, broschure);
             return ResponseEntity.ok("Blog updated successfully.");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update blog: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update blog: " + e.getMessage());
         }
     }
+
 
     @DeleteMapping("/delete/{blogCode}")
     public ResponseEntity<String> deleteBlog(@PathVariable String blogCode) {

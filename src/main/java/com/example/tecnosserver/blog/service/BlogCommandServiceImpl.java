@@ -4,6 +4,7 @@ import com.example.tecnosserver.blog.dto.BlogDTO;
 import com.example.tecnosserver.blog.mapper.BlogMapper;
 import com.example.tecnosserver.blog.model.Blog;
 import com.example.tecnosserver.blog.repo.BlogRepo;
+import com.example.tecnosserver.caption.model.Caption;
 import com.example.tecnosserver.caption.repo.CaptionRepo;
 import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
@@ -15,6 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -22,11 +28,12 @@ import org.springframework.web.multipart.MultipartFile;
 public class BlogCommandServiceImpl implements BlogCommandService {
 
     private final BlogRepo blogRepo;
+    private final CaptionRepo captionRepo;
     private final BlogMapper blogMapper;
     private final CloudAdapter cloudAdapter;
 
     @Override
-    public void addBlog(BlogDTO blogDTO, MultipartFile mainPhoto) {
+    public void addBlog(BlogDTO blogDTO, MultipartFile mainPhoto, MultipartFile broschure) {
         validateBlogDTO(blogDTO);
 
         if (blogRepo.findByCode(blogDTO.code()).isPresent()) {
@@ -40,11 +47,17 @@ public class BlogCommandServiceImpl implements BlogCommandService {
             blog.setMainPhotoUrl(photoUrl);
         }
 
+        if (broschure != null && !broschure.isEmpty()) {
+            String broschureUrl = uploadFile(broschure, "Failed to upload broschure: ");
+            blog.setBroschureUrl(broschureUrl);
+        }
+
+        activateCaptions(blogDTO.captionCodes());
         blogRepo.save(blog);
     }
 
     @Override
-    public void updateBlog(String blogCode, BlogDTO blogDTO, MultipartFile mainPhoto) {
+    public void updateBlog(String blogCode, BlogDTO blogDTO, MultipartFile mainPhoto, MultipartFile broschure) {
         validateBlogDTO(blogDTO);
 
         Blog blog = blogRepo.findByCode(blogCode)
@@ -56,13 +69,20 @@ public class BlogCommandServiceImpl implements BlogCommandService {
             blog.setMainPhotoUrl(photoUrl);
         }
 
+        if (broschure != null && !broschure.isEmpty()) {
+            safeDeleteFile(blog.getBroschureUrl());
+            String broschureUrl = uploadFile(broschure, "Failed to upload new broschure: ");
+            blog.setBroschureUrl(broschureUrl);
+        }
+
         blog.setTitle(blogDTO.title());
         blog.setDescription(blogDTO.description());
-        blog.setBroschureUrl(blogDTO.broschureUrl());
         blog.setViewUrl(blogDTO.viewUrl());
 
+        updateCaptions(blog, blogDTO.captionCodes());
         blogRepo.save(blog);
     }
+
 
     @Override
     public void deleteBlog(String blogCode) {
@@ -73,9 +93,52 @@ public class BlogCommandServiceImpl implements BlogCommandService {
         Blog blog = blogRepo.findByCode(blogCode.trim())
                 .orElseThrow(() -> new NotFoundException("Blog with code '" + blogCode + "' not found."));
 
+        deactivateCaptions(blog.getCaptions().stream()
+                .map(Caption::getCode)
+                .collect(Collectors.toList()));
+
         safeDeleteFile(blog.getMainPhotoUrl());
 
         blogRepo.delete(blog);
+    }
+
+    private void activateCaptions(List<String> captionCodes) {
+        if (captionCodes != null && !captionCodes.isEmpty()) {
+            List<Caption> captions = captionRepo.findByCodeIn(captionCodes)
+                    .orElseThrow(() -> new NotFoundException("Some captions not found."));
+
+            captions.forEach(caption -> caption.setActive(true));
+            captionRepo.saveAll(captions);
+        }
+    }
+
+    private void deactivateCaptions(List<String> captionCodes) {
+        if (captionCodes != null && !captionCodes.isEmpty()) {
+            List<Caption> captions = captionRepo.findByCodeIn(captionCodes)
+                    .orElseThrow(() -> new NotFoundException("Some captions not found."));
+
+            captions.forEach(caption -> caption.setActive(false));
+            captionRepo.saveAll(captions);
+        }
+    }
+
+    private void updateCaptions(Blog blog, List<String> newCaptionCodes) {
+        Set<String> currentCaptionCodes = blog.getCaptions().stream()
+                .map(Caption::getCode)
+                .collect(Collectors.toSet());
+
+        Set<String> newCaptionCodeSet = newCaptionCodes == null ? Set.of() : Set.copyOf(newCaptionCodes);
+
+        List<String> captionsToActivate = newCaptionCodeSet.stream()
+                .filter(code -> !currentCaptionCodes.contains(code))
+                .collect(Collectors.toList());
+
+        List<String> captionsToDeactivate = currentCaptionCodes.stream()
+                .filter(code -> !newCaptionCodeSet.contains(code))
+                .collect(Collectors.toList());
+
+        activateCaptions(captionsToActivate);
+        deactivateCaptions(captionsToDeactivate);
     }
 
     private void validateBlogDTO(BlogDTO blogDTO) {

@@ -1,9 +1,11 @@
 package com.example.tecnosserver.series.service;
 
+import com.example.tecnosserver.blog.model.Blog;
 import com.example.tecnosserver.series.dto.SeriesDTO;
 import com.example.tecnosserver.series.mapper.SeriesMapper;
 import com.example.tecnosserver.series.model.Series;
 import com.example.tecnosserver.series.repo.SeriesRepo;
+import com.example.tecnosserver.blog.repo.BlogRepo;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.intercom.CloudAdapter;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -19,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SeriesCommandServiceImpl implements SeriesCommandService {
 
     private final SeriesRepo seriesRepo;
+    private final BlogRepo blogRepo;
     private final SeriesMapper seriesMapper;
     private final CloudAdapter cloudAdapter;
 
@@ -36,6 +41,7 @@ public class SeriesCommandServiceImpl implements SeriesCommandService {
             log.warn("No image provided for series: {}", seriesDTO.name());
         }
 
+        activateBlogs(series, seriesDTO.blogCodes());
         seriesRepo.save(series);
         log.info("Series '{}' added successfully with code: {}", seriesDTO.name(), series.getCode());
     }
@@ -62,6 +68,8 @@ public class SeriesCommandServiceImpl implements SeriesCommandService {
             log.info("No new image provided for series: {}", code);
         }
 
+        deactivateOldBlogs(series);
+        activateBlogs(series, seriesDTO.blogCodes());
         seriesRepo.save(series);
         log.info("Series '{}' updated successfully.", series.getName());
     }
@@ -76,8 +84,32 @@ public class SeriesCommandServiceImpl implements SeriesCommandService {
                     return new NotFoundException("Series with code '" + code + "' not found.");
                 });
 
+        deactivateOldBlogs(series);
         seriesRepo.delete(series);
         log.info("Series with code '{}' deleted successfully.", code);
+    }
+
+    private void activateBlogs(Series series, List<String> blogCodes) {
+        if (blogCodes != null && !blogCodes.isEmpty()) {
+            List<Blog> blogsToActivate = blogRepo.findByCodeIn(blogCodes)
+                    .orElseThrow(() -> new NotFoundException("Some blogs not found."));
+            blogsToActivate.forEach(blog -> {
+                blog.setActive(true);
+                blog.setSeries(series);
+            });
+            blogRepo.saveAll(blogsToActivate);
+            log.info("Activated {} blogs for series '{}'.", blogsToActivate.size(), series.getCode());
+        }
+    }
+
+    private void deactivateOldBlogs(Series series) {
+        List<Blog> blogsToDeactivate = series.getBlogs();
+        blogsToDeactivate.forEach(blog -> {
+            blog.setActive(false);
+            blog.setSeries(null);
+        });
+        blogRepo.saveAll(blogsToDeactivate);
+        log.info("Deactivated {} blogs for series '{}'.", blogsToDeactivate.size(), series.getCode());
     }
 
     private String uploadFile(MultipartFile file) {

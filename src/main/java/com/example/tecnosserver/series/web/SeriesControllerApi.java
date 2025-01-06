@@ -25,7 +25,7 @@ public class SeriesControllerApi {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> addSeries(
             @RequestPart("series") SeriesDTO seriesDTO,
-            @RequestPart(value = "image", required = false) MultipartFile image) {
+            @RequestPart(value = "image", required = false)  MultipartFile image) {
         try {
             seriesCommandService.addSeries(seriesDTO, image);
             return ResponseEntity.status(HttpStatus.CREATED).body("Series added successfully.");

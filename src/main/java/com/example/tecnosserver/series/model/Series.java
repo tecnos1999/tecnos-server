@@ -8,6 +8,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "series")
@@ -34,6 +35,14 @@ public class Series {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
-    @OneToMany(mappedBy = "series", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "series", fetch = FetchType.LAZY)
     private List<Blog> blogs = new ArrayList<>();
+
+    @PrePersist
+    protected void generateCode() {
+        if (this.code == null || this.code.isBlank()) {
+            this.code = UUID.randomUUID().toString();
+        }
+    }
+
 }
