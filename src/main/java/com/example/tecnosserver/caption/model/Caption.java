@@ -1,5 +1,6 @@
 package com.example.tecnosserver.caption.model;
 
+import com.example.tecnosserver.blog.model.Blog;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -39,6 +40,11 @@ public class Caption {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "blog_id", nullable = true)
+    private Blog blog;
+
 
     @PrePersist
     protected void generateCode() {

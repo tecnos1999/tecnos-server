@@ -9,5 +9,7 @@ public interface CaptionQueryService {
     CaptionDTO getCaptionByCode(String code);
 
     List<CaptionDTO> getAllCaptions();
+
+    List<CaptionDTO> getCaptionsByCodeIn(List<String> codes);
 }
 

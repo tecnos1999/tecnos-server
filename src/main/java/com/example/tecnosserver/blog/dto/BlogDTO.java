@@ -1,5 +1,7 @@
 package com.example.tecnosserver.blog.dto;
 
+import com.example.tecnosserver.caption.dto.CaptionDTO;
+
 import java.util.List;
 
 public record BlogDTO(
@@ -12,5 +14,5 @@ public record BlogDTO(
         String seriesCode,
 
         boolean active,
-        List<String> captionCodes
+        List<CaptionDTO> captions
 ) {}

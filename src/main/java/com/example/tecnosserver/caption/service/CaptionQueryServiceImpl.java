@@ -40,4 +40,15 @@ public class CaptionQueryServiceImpl implements CaptionQueryService {
                 .map(captionMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<CaptionDTO> getCaptionsByCodeIn(List<String> codes) {
+        List<Caption> captions = captionRepo.findByCodeIn(codes)
+                .orElseThrow(() -> new NotFoundException("Captions not found with codes: " + codes));
+
+        log.info("Retrieved captions by codes: {}", codes);
+        return captions.stream()
+                .map(captionMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

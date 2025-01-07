@@ -40,4 +40,15 @@ public class BlogQueryServiceImpl implements BlogQueryService {
                 .map(blogMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<BlogDTO> getBlogsByCodeIn(List<String> codes) {
+        List<Blog> blogs = blogRepo.findByCodeIn(codes)
+                .orElseThrow(() -> new NotFoundException("Blogs not found with codes: " + codes));
+
+        log.info("Retrieved blogs by codes: {}", codes);
+        return blogs.stream()
+                .map(blogMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

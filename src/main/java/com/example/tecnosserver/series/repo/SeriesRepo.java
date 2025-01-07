@@ -11,5 +11,7 @@ public interface SeriesRepo extends JpaRepository<Series, Long> {
 
     Optional<Series> findByCode(String code);
 
+    Optional<Series> findByName(String name);
+
 }
 

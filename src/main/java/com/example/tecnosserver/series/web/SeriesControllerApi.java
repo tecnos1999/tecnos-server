@@ -72,4 +72,11 @@ public class SeriesControllerApi {
         }
         return ResponseEntity.ok(seriesList.get());
     }
+
+    @GetMapping("/getSeriesByName")
+    public ResponseEntity<SeriesDTO> getSeriesByName(@RequestParam String name) {
+        return seriesQueryService.findSeriesByName(name)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 }

@@ -2,18 +2,15 @@ package com.example.tecnosserver.blog.mapper;
 
 import com.example.tecnosserver.blog.dto.BlogDTO;
 import com.example.tecnosserver.blog.model.Blog;
+import com.example.tecnosserver.caption.dto.CaptionDTO;
 import com.example.tecnosserver.caption.model.Caption;
-import com.example.tecnosserver.caption.repo.CaptionRepo;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 @Component
 public class BlogMapper {
-
-    private final CaptionRepo captionRepo;
 
     public BlogDTO toDTO(Blog blog) {
         return new BlogDTO(
@@ -26,13 +23,13 @@ public class BlogMapper {
                 blog.getSeries() != null ? blog.getSeries().getCode() : null,
                 blog.isActive(),
                 blog.getCaptions() != null
-                        ? blog.getCaptions().stream().map(Caption::getCode).toList()
+                        ? blog.getCaptions().stream().map(this::toCaptionDTO).toList()
                         : List.of()
         );
     }
 
     public Blog fromDTO(BlogDTO blogDTO) {
-        Blog blog = Blog.builder()
+        return Blog.builder()
                 .code(blogDTO.code())
                 .title(blogDTO.title())
                 .description(blogDTO.description())
@@ -41,13 +38,15 @@ public class BlogMapper {
                 .viewUrl(blogDTO.viewUrl())
                 .active(blogDTO.active())
                 .build();
-
-        if (blogDTO.captionCodes() != null && !blogDTO.captionCodes().isEmpty()) {
-            List<Caption> captions = captionRepo.findByCodeIn(blogDTO.captionCodes())
-                    .orElseThrow(() -> new RuntimeException("Some captions not found"));
-            blog.setCaptions(captions);
-        }
-
-        return blog;
+    }
+    
+    private CaptionDTO toCaptionDTO(Caption caption) {
+        return new CaptionDTO(
+                caption.getCode(),
+                caption.getText(),
+                caption.getPosition(),
+                caption.getPhotoUrl(),
+                caption.isActive()
+        );
     }
 }

@@ -8,5 +8,7 @@ import java.util.Optional;
 
 public interface SeriesQueryService {
     Optional<SeriesDTO> findSeriesByCode(String code);
+
+    Optional<SeriesDTO> findSeriesByName(String name);
     Optional<List<SeriesDTO>> findAllSeries();
 }

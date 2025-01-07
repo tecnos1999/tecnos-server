@@ -48,8 +48,7 @@ public class Blog {
     @JoinColumn(name = "series_id")
     private Series series;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinColumn(name = "blog_code", referencedColumnName = "code")
+    @OneToMany(mappedBy = "blog", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Caption> captions = new ArrayList<>();
 
     @Column(name = "active", nullable = false)

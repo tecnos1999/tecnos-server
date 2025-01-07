@@ -68,4 +68,10 @@ public class BlogControllerApi {
         List<BlogDTO> blogs = blogQueryService.getAllBlogs();
         return ResponseEntity.ok(blogs);
     }
+
+    @GetMapping("/getBlogsByCodeIn")
+    public ResponseEntity<List<BlogDTO>> getBlogsByCodeIn(@RequestParam List<String> codes) {
+        List<BlogDTO> blogs = blogQueryService.getBlogsByCodeIn(codes);
+        return ResponseEntity.ok(blogs);
+    }
 }

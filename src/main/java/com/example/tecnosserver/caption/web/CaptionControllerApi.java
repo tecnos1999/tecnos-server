@@ -64,4 +64,10 @@ public class CaptionControllerApi {
         List<CaptionDTO> captions = captionQueryService.getAllCaptions();
         return ResponseEntity.ok(captions);
     }
+
+    @GetMapping("/codes")
+    public ResponseEntity<List<CaptionDTO>> getCaptionsByCodeIn(@RequestParam List<String> codes) {
+        List<CaptionDTO> captions = captionQueryService.getCaptionsByCodeIn(codes);
+        return ResponseEntity.ok(captions);
+    }
 }

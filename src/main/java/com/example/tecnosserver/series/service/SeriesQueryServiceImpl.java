@@ -46,4 +46,17 @@ public class SeriesQueryServiceImpl implements SeriesQueryService {
 
         return Optional.of(seriesDTOs);
     }
+
+    @Override
+    public Optional<SeriesDTO> findSeriesByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new AppException("Series name cannot be null or empty.");
+        }
+
+        return seriesRepo.findByName(name)
+                .map(seriesMapper::toDTO)
+                .or(() -> {
+                    throw new NotFoundException("Series with name " + name + " not found.");
+                });
+    }
 }

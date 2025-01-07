@@ -8,4 +8,6 @@ public interface BlogQueryService {
     BlogDTO getBlogByCode(String code);
 
     List<BlogDTO> getAllBlogs();
+
+    List<BlogDTO> getBlogsByCodeIn(List<String> codes);
 }
