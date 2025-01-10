@@ -4,6 +4,7 @@ import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.products.model.Product;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,9 +33,9 @@ public class SubCategory {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "category_id", nullable = false)
-    @ToString.Exclude
+    @JsonManagedReference
     private Category category;
 
     @CreationTimestamp

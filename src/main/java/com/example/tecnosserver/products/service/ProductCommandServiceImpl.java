@@ -59,46 +59,29 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                               MultipartFile broschureFile, MultipartFile tehnicFile) {
         validateMandatoryFields(productDTO);
 
-        if (productRepo.findProductBySku(productDTO.getSku()).isPresent()) {
-            throw new AlreadyExistsException("Product with SKU '" + productDTO.getSku() + "' already exists");
-        }
+        checkIfSkuExists(productDTO.getSku());
 
-        Category category = validateAndRetrieveCategory(productDTO.getCategory()).orElse(null);
-        SubCategory subCategory = validateAndRetrieveSubCategory(productDTO.getSubCategory(), productDTO.getCategory()).orElse(null);
-        ItemCategory itemCategory = validateAndRetrieveItemCategory(productDTO.getItemCategory(), productDTO.getSubCategory(), productDTO.getCategory()).orElse(null);
+        Product product = initializeProduct(productDTO, broschureFile, tehnicFile);
 
-        Partner partner = productDTO.getPartnerName() != null
-                ? partnerRepo.findByName(productDTO.getPartnerName())
-                .orElseThrow(() -> new NotFoundException("Partner with name '" + productDTO.getPartnerName() + "' not found"))
-                : null;
+        processImages(imageFiles, product);
 
-        String broschureUrl = broschureFile != null ? cloudAdapter.uploadFile(broschureFile) : null;
-        String tehnicUrl = tehnicFile != null ? cloudAdapter.uploadFile(tehnicFile) : null;
+        productRepo.saveAndFlush(product);
 
-        List<String> imageUrls = imageFiles != null
-                ? imageFiles.stream().map(cloudAdapter::uploadFile).toList()
-                : List.of();
+        log.info("Product with SKU '{}' was successfully created.", productDTO.getSku());
+    }
 
-        List<Tag> tags = productDTO.getTags() != null
-                ? productDTO.getTags().stream().map(this::validateOrCreateTag).toList()
-                : List.of();
+    @Override
+    public void deleteProduct(String sku) {
+        validateSku(sku);
 
-        Product product = Product.builder()
-                .sku(productDTO.getSku())
-                .name(productDTO.getName())
-                .description(productDTO.getDescription())
-                .category(category)
-                .subCategory(subCategory)
-                .itemCategory(itemCategory)
-                .broschure(broschureUrl)
-                .tehnic(tehnicUrl)
-                .linkVideo(productDTO.getLinkVideo())
-                .images(imageUrls)
-                .partner(partner)
-                .tags(tags)
-                .build();
+        Product product = retrieveProductBySku(sku.trim());
 
-        productRepo.save(product);
+        deleteDocuments(product);
+        deleteImages(product);
+
+        productRepo.delete(product);
+
+        log.info("Product with SKU '{}' was successfully deleted.", sku);
     }
 
     @Override
@@ -106,97 +89,18 @@ public class ProductCommandServiceImpl implements ProductCommandService {
     public void updateProduct(String sku, ProductDTO updatedProductDTO,
                               List<MultipartFile> newImageFiles,
                               MultipartFile newBroschureFile, MultipartFile newTehnicFile) {
-        Product existingProduct = productRepo.findProductBySku(sku)
-                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found"));
+        Product existingProduct = retrieveProductBySku(sku);
 
         validateMandatoryFields(updatedProductDTO);
 
-        try {
-            // Ștergere imagini specifice
-            if (updatedProductDTO.getImagesToRemove() != null && !updatedProductDTO.getImagesToRemove().isEmpty()) {
-                updatedProductDTO.getImagesToRemove().forEach(imageUrl -> {
-                    if (existingProduct.getImages().remove(imageUrl)) {
-                        safeDeleteFile(imageUrl); // Șterge din cloud
-                    }
-                });
+        processImagesToRemove(updatedProductDTO.getImagesToRemove(), existingProduct);
+        processNewImages(newImageFiles, existingProduct);
+        updateDocuments(existingProduct, newBroschureFile, newTehnicFile);
+        updateProductFields(existingProduct, updatedProductDTO);
 
-                // Forțează sincronizarea modificărilor cu baza de date
-                productRepo.saveAndFlush(existingProduct);
-            }
+        productRepo.saveAndFlush(existingProduct);
 
-            // Adaugă imagini noi
-            if (newImageFiles != null && !newImageFiles.isEmpty()) {
-                List<String> newImageUrls = newImageFiles.stream()
-                        .map(cloudAdapter::uploadFile)
-                        .toList();
-                existingProduct.getImages().addAll(newImageUrls);
-            }
-
-            // Elimină duplicatele
-            existingProduct.setImages(existingProduct.getImages().stream().distinct().toList());
-
-            // Actualizează alte detalii
-            updateDocument(existingProduct.getBroschure(), newBroschureFile, existingProduct::setBroschure);
-            updateDocument(existingProduct.getTehnic(), newTehnicFile, existingProduct::setTehnic);
-
-            existingProduct.setName(updatedProductDTO.getName());
-            existingProduct.setDescription(updatedProductDTO.getDescription());
-            existingProduct.setCategory(validateAndRetrieveCategory(updatedProductDTO.getCategory()).orElse(null));
-            existingProduct.setSubCategory(validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null));
-            existingProduct.setItemCategory(validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory(), updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null));
-            existingProduct.setTags(updatedProductDTO.getTags() != null
-                    ? updatedProductDTO.getTags().stream().map(this::validateOrCreateTag).toList()
-                    : List.of());
-            existingProduct.setLinkVideo(updatedProductDTO.getLinkVideo());
-
-            // Salvează modificările
-            productRepo.save(existingProduct);
-
-            log.info("Product with SKU '{}' was successfully updated.", sku);
-        } catch (Exception ex) {
-            log.error("Failed to update product with SKU '{}'. Rolling back changes.", sku, ex);
-            throw new AppException("An error occurred while updating the product. Transaction rolled back.");
-        }
-    }
-
-
-
-
-
-    @Override
-    public void deleteProduct(String sku) {
-        if (sku == null || sku.trim().isEmpty()) {
-            throw new AppException("Product SKU cannot be null or empty.");
-        }
-
-        Product product = productRepo.findProductBySku(sku.trim())
-                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found."));
-
-        if (product.getBroschure() != null) {
-            safeDeleteFile(product.getBroschure());
-        }
-        if (product.getTehnic() != null) {
-            safeDeleteFile(product.getTehnic());
-        }
-        if (product.getImages() != null && !product.getImages().isEmpty()) {
-            product.getImages().forEach(this::safeDeleteFile);
-        }
-
-        productRepo.delete(product);
-
-        log.info("Product with SKU '{}' was successfully deleted.", sku);
-    }
-
-
-    private void safeDeleteFile(String fileUrl) {
-        if (fileUrl != null && !fileUrl.isBlank()) {
-            try {
-                cloudAdapter.deleteFile(fileUrl);
-                log.info("File successfully deleted: {}", fileUrl);
-            } catch (Exception e) {
-                log.error("Failed to delete file: {}", fileUrl, e);
-            }
-        }
+        log.info("Product with SKU '{}' was successfully updated.", sku);
     }
 
 
@@ -209,17 +113,134 @@ public class ProductCommandServiceImpl implements ProductCommandService {
             throw new AppException("Description cannot be null or empty");
     }
 
-    private Tag validateOrCreateTag(String tagName) {
-        return tagRepo.findByName(tagName)
-                .orElseGet(() -> tagRepo.save(Tag.builder().name(tagName).build()));
+    private void checkIfSkuExists(String sku) {
+        if (productRepo.findProductBySku(sku).isPresent()) {
+            throw new AlreadyExistsException("Product with SKU '" + sku + "' already exists");
+        }
     }
 
-    private void updateDocument(String existingUrl, MultipartFile newFile, Consumer<String> setUrl) {
-        if (existingUrl != null) {
-            cloudAdapter.deleteFile(existingUrl);
+    private Product initializeProduct(ProductDTO productDTO, MultipartFile broschureFile, MultipartFile tehnicFile) {
+        Category category = validateAndRetrieveCategory(productDTO.getCategory()).orElse(null);
+        SubCategory subCategory = validateAndRetrieveSubCategory(productDTO.getSubCategory(), productDTO.getCategory()).orElse(null);
+        ItemCategory itemCategory = validateAndRetrieveItemCategory(productDTO.getItemCategory(), productDTO.getSubCategory(), productDTO.getCategory()).orElse(null);
+
+        Partner partner = resolvePartner(productDTO.getPartnerName());
+
+        String broschureUrl = processDocument(broschureFile);
+        String tehnicUrl = processDocument(tehnicFile);
+
+        return Product.builder()
+                .sku(productDTO.getSku())
+                .name(productDTO.getName())
+                .description(productDTO.getDescription())
+                .category(category)
+                .subCategory(subCategory)
+                .itemCategory(itemCategory)
+                .broschure(broschureUrl)
+                .tehnic(tehnicUrl)
+                .linkVideo(productDTO.getLinkVideo())
+                .partner(partner)
+                .build();
+    }
+
+    private void processImages(List<MultipartFile> imageFiles, Product product) {
+        if (imageFiles != null && !imageFiles.isEmpty()) {
+            List<String> imageUrls = imageFiles.stream()
+                    .map(cloudAdapter::uploadFile)
+                    .filter(url -> url != null && !url.isBlank())
+                    .toList();
+            product.addImages(imageUrls);
         }
-        String newUrl = cloudAdapter.uploadFile(newFile);
-        setUrl.accept(newUrl);
+    }
+
+    private Partner resolvePartner(String partnerName) {
+        if (partnerName != null) {
+            return partnerRepo.findByName(partnerName)
+                    .orElseThrow(() -> new NotFoundException("Partner with name '" + partnerName + "' not found"));
+        }
+        return null;
+    }
+
+    private String processDocument(MultipartFile file) {
+        return (file != null && !file.isEmpty()) ? cloudAdapter.uploadFile(file) : null;
+    }
+
+    private void deleteDocuments(Product product) {
+        safeDeleteFile(product.getBroschure());
+        safeDeleteFile(product.getTehnic());
+    }
+
+    private void deleteImages(Product product) {
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            product.getImages().forEach(image -> safeDeleteFile(image.getImageUrl()));
+        }
+    }
+
+    private void processImagesToRemove(List<String> imagesToRemove, Product product) {
+        if (imagesToRemove != null && !imagesToRemove.isEmpty()) {
+            product.removeImages(imagesToRemove);
+            imagesToRemove.forEach(this::safeDeleteFile);
+        }
+    }
+
+    private void processNewImages(List<MultipartFile> newImageFiles, Product product) {
+        if (newImageFiles != null && !newImageFiles.isEmpty()) {
+            List<String> newImageUrls = newImageFiles.stream()
+                    .map(cloudAdapter::uploadFile)
+                    .filter(url -> url != null && !url.isBlank())
+                    .toList();
+            product.addImages(newImageUrls);
+        }
+    }
+
+    private void updateDocuments(Product product, MultipartFile newBroschureFile, MultipartFile newTehnicFile) {
+        if (newBroschureFile != null && !newBroschureFile.isEmpty()) {
+            updateDocument(product.getBroschure(), newBroschureFile, product::setBroschure);
+        }
+        if (newTehnicFile != null && !newTehnicFile.isEmpty()) {
+            updateDocument(product.getTehnic(), newTehnicFile, product::setTehnic);
+        }
+    }
+
+    private void updateProductFields(Product product, ProductDTO updatedProductDTO) {
+        product.setName(updatedProductDTO.getName());
+        product.setDescription(updatedProductDTO.getDescription());
+        product.setLinkVideo(updatedProductDTO.getLinkVideo());
+        product.setCategory(validateAndRetrieveCategory(updatedProductDTO.getCategory()).orElse(null));
+        product.setSubCategory(validateAndRetrieveSubCategory(updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null));
+        product.setItemCategory(validateAndRetrieveItemCategory(updatedProductDTO.getItemCategory(), updatedProductDTO.getSubCategory(), updatedProductDTO.getCategory()).orElse(null));
+        product.setPartner(resolvePartner(updatedProductDTO.getPartnerName()));
+        updateTags(product, updatedProductDTO.getTags());
+    }
+
+    private void updateTags(Product product, List<String> updatedTagNames) {
+        if (updatedTagNames != null) {
+            List<Tag> currentTags = product.getTags();
+
+            List<Tag> tagsToRemove = currentTags.stream()
+                    .filter(existingTag -> !updatedTagNames.contains(existingTag.getName()))
+                    .toList();
+            currentTags.removeAll(tagsToRemove);
+
+            List<Tag> tagsToAdd = updatedTagNames.stream()
+                    .map(this::validateExistingTag)
+                    .filter(newTag -> currentTags.stream().noneMatch(existingTag -> existingTag.getName().equals(newTag.getName())))
+                    .toList();
+            currentTags.addAll(tagsToAdd);
+
+            product.setTags(currentTags);
+        }
+    }
+
+    private void safeDeleteFile(String fileUrl) {
+        if (fileUrl != null && !fileUrl.isBlank()) {
+            try {
+                cloudAdapter.deleteFile(fileUrl);
+                log.info("File successfully deleted: {}", fileUrl);
+            } catch (Exception e) {
+                log.error("Failed to delete file: {}", fileUrl, e);
+            }
+        }
     }
 
     private Optional<Category> validateAndRetrieveCategory(String categoryName) {
@@ -238,4 +259,29 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 validateAndRetrieveSubCategory(subCategoryName, categoryName).orElseThrow(),
                 validateAndRetrieveCategory(categoryName).orElseThrow());
     }
+
+    private Tag validateExistingTag(String tagName) {
+        return tagRepo.findByName(tagName)
+                .orElseThrow(() -> new NotFoundException("Tag with name '" + tagName + "' not found"));
+    }
+
+    private void updateDocument(String existingUrl, MultipartFile newFile, Consumer<String> setUrl) {
+        if (existingUrl != null) {
+            safeDeleteFile(existingUrl);
+        }
+        String newUrl = cloudAdapter.uploadFile(newFile);
+        setUrl.accept(newUrl);
+    }
+
+    private void validateSku(String sku) {
+        if (sku == null || sku.trim().isEmpty()) {
+            throw new AppException("Product SKU cannot be null or empty.");
+        }
+    }
+
+    private Product retrieveProductBySku(String sku) {
+        return productRepo.findProductBySku(sku)
+                .orElseThrow(() -> new NotFoundException("Product with SKU '" + sku + "' not found."));
+    }
+
 }

@@ -39,7 +39,7 @@ public class BlogMapper {
                 .active(blogDTO.active())
                 .build();
     }
-    
+
     private CaptionDTO toCaptionDTO(Caption caption) {
         return new CaptionDTO(
                 caption.getCode(),

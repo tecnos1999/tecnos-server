@@ -55,5 +55,4 @@ public class Category {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @ToString.Exclude
-    private List<Product> products;
-}
+    private List<Product> products;}

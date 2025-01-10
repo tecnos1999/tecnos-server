@@ -4,6 +4,7 @@ import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.subcategory.model.SubCategory;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
@@ -32,15 +33,19 @@ public class ItemCategory {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "subcategory_id", nullable = false)
-    @ToString.Exclude
+    @JsonManagedReference
     private SubCategory subCategory;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "category_id", nullable = false)
-    @ToString.Exclude
+    @JsonManagedReference
     private Category category;
+
+    @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<Product> products;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -50,7 +55,5 @@ public class ItemCategory {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "itemCategory", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @ToString.Exclude
-    private List<Product> products;
+
 }
