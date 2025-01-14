@@ -26,4 +26,6 @@ public interface ProductRepo extends JpaRepository<Product, Long>{
 
     @Query("SELECT DISTINCT p FROM Product p JOIN p.tags t WHERE t.name IN :tagNames")
     Optional<List<Product>> findAllByTagsName(List<String> tagNames);
+
+   List<Product> findBySkuIn(List<String> skus);
 }

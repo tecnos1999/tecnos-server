@@ -1,7 +1,9 @@
 package com.example.tecnosserver.blog.model;
 
 import com.example.tecnosserver.caption.model.Caption;
+import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.series.model.Series;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -61,6 +63,25 @@ public class Blog {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "blog_products",
+            joinColumns = @JoinColumn(name = "blog_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    @JsonManagedReference
+    private List<Product> products = new ArrayList<>();
+    public void addProduct(Product product) {
+        this.products.add(product);
+        product.getBlogs().add(this);
+    }
+
+    public void removeProduct(Product product) {
+        this.products.remove(product);
+        product.getBlogs().remove(this);
+    }
+
 
     @PrePersist
     protected void generateCode() {

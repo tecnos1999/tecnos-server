@@ -38,7 +38,7 @@ public class Utils {
             "/server/api/v1/captions", "/server/api/v1/captions/{code}", "/server/api/v1/captions/codes**",
             "/server/api/v1/blogs", "/server/api/v1/blogs/{blogCode}",
             "/server/api/v1/series", "/server/api/v1/series/{code}",
-            "/server/api/v1/series/getSeriesByName**"
+            "/server/api/v1/series/getSeriesByName**" , "/server/api/v1/product/sku**",
 
     };
 }

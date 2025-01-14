@@ -1,11 +1,12 @@
 package com.example.tecnosserver.caption.dto;
 
-import lombok.AllArgsConstructor;
 
 public record CaptionDTO(
         String code,
+        String title,
         String text,
         String position,
         String photoUrl,
         boolean active
-) {}
+) {
+}

@@ -5,12 +5,14 @@ import com.example.tecnosserver.products.dto.ProductDTO;
 import com.example.tecnosserver.products.mapper.ProductMapper;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.products.repo.ProductRepo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class ProductQueryServiceImpl implements ProductQueryService {
 
     private final ProductRepo productRepo;
@@ -83,4 +85,23 @@ public class ProductQueryServiceImpl implements ProductQueryService {
         }
         return products.map(productMapper::mapProductsToDTOs);
     }
+
+    @Override
+    public List<ProductDTO> findBySkuIn(List<String> skus) {
+        if (skus == null || skus.isEmpty()) {
+            throw new NotFoundException("SKU list cannot be null or empty.");
+        }
+
+        log.info("Searching for products with SKUs: {}", skus);
+        List<Product> products = productRepo.findBySkuIn(skus);
+
+        if (products.isEmpty()) {
+            log.warn("No products found for SKUs: {}", skus);
+            throw new NotFoundException("No products found for SKUs: " + String.join(", ", skus));
+        }
+
+        log.info("Found {} products for SKUs: {}", products.size(), skus);
+        return productMapper.mapProductsToDTOs(products);
+    }
+
 }

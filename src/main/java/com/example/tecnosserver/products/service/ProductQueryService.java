@@ -21,4 +21,6 @@ public interface ProductQueryService {
     Optional<List<ProductDTO>> findAllByTagName(String tagName);
 
     Optional<List<ProductDTO>> findAllByTagsName(List<String> tagNames);
+
+    List<ProductDTO> findBySkuIn(List<String> skus);
 }

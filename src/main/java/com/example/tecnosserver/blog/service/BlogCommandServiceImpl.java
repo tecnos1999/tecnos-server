@@ -11,6 +11,8 @@ import com.example.tecnosserver.exceptions.exception.AlreadyExistsException;
 import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.intercom.CloudAdapter;
+import com.example.tecnosserver.products.model.Product;
+import com.example.tecnosserver.products.repo.ProductRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class BlogCommandServiceImpl implements BlogCommandService {
     private final CaptionRepo captionRepo;
     private final BlogMapper blogMapper;
     private final CloudAdapter cloudAdapter;
+    private final ProductRepo productRepo;
     @Override
     public void addBlog(BlogDTO blogDTO, MultipartFile mainPhoto, MultipartFile broschure) {
         validateBlogDTO(blogDTO);
@@ -41,10 +45,22 @@ public class BlogCommandServiceImpl implements BlogCommandService {
         blog.setMainPhotoUrl(uploadFile(mainPhoto, "Failed to upload main photo: "));
         blog.setBroschureUrl(uploadFile(broschure, "Failed to upload broschure: "));
 
+        List<Product> products = productRepo.findBySkuIn(blogDTO.skuProducts());
+
+        if (products.size() != blogDTO.skuProducts().size()) {
+            List<String> missingSkus = blogDTO.skuProducts().stream()
+                    .filter(sku -> products.stream().noneMatch(product -> product.getSku().equals(sku)))
+                    .toList();
+            throw new NotFoundException("The following SKUs do not exist: " + missingSkus);
+        }
+
+        products.forEach(blog::addProduct);
+
         blogRepo.save(blog);
 
         associateExistingCaptions(blog, blogDTO.captions());
     }
+
 
     @Override
     public void updateBlog(String blogCode, BlogDTO blogDTO, MultipartFile mainPhoto, MultipartFile broschure) {
@@ -65,10 +81,25 @@ public class BlogCommandServiceImpl implements BlogCommandService {
         blog.setDescription(blogDTO.description());
         blog.setViewUrl(blogDTO.viewUrl());
 
+        List<Product> currentProducts = blog.getProducts();
+        List<Product> updatedProducts = productRepo.findBySkuIn(blogDTO.skuProducts());
+
+        List<Product> productsToRemove = currentProducts.stream()
+                .filter(product -> !updatedProducts.contains(product))
+                .toList();
+
+        List<Product> productsToAdd = updatedProducts.stream()
+                .filter(product -> !currentProducts.contains(product))
+                .toList();
+
+        productsToRemove.forEach(blog::removeProduct);
+        productsToAdd.forEach(blog::addProduct);
+
         associateExistingCaptions(blog, blogDTO.captions());
 
         blogRepo.save(blog);
     }
+
 
     @Override
     public void deleteBlog(String blogCode) {

@@ -10,6 +10,7 @@ public class CaptionMapper {
     public CaptionDTO toDTO(Caption caption) {
         return new CaptionDTO(
                 caption.getCode(),
+                caption.getTitle(),
                 caption.getText(),
                 caption.getPosition(),
                 caption.getPhotoUrl(),
@@ -19,6 +20,7 @@ public class CaptionMapper {
 
     public Caption fromDTO(CaptionDTO captionDTO) {
         return Caption.builder()
+                .title(captionDTO.title())
                 .text(captionDTO.text())
                 .position(captionDTO.position())
                 .photoUrl(captionDTO.photoUrl())

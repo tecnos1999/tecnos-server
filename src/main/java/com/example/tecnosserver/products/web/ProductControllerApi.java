@@ -118,4 +118,12 @@ public class ProductControllerApi {
                 .map(ResponseEntity::ok)
                 .orElseThrow(() -> new RuntimeException("No products found for the given tags"));
     }
+
+    @GetMapping("/sku")
+    public ResponseEntity<List<ProductDTO>> findBySkuIn(@RequestParam List<String> skus) {
+        log.info("Fetching products for SKUs: {}", String.join(", ", skus));
+        List<ProductDTO> products = productQueryService.findBySkuIn(skus);
+        return ResponseEntity.ok(products);
+    }
+
 }

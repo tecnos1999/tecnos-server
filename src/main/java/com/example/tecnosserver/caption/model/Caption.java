@@ -25,6 +25,9 @@ public class Caption {
     @Column(name = "code", nullable = false, unique = true, updatable = false)
     private String code;
 
+    @Column(name = "title", nullable = false, length = 100)
+    private String title;
+
     @Column(name = "text", nullable = false, length = 2000)
     private String text;
 

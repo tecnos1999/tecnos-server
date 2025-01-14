@@ -1,5 +1,6 @@
 package com.example.tecnosserver.products.model;
 
+import com.example.tecnosserver.blog.model.Blog;
 import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.partners.model.Partner;
@@ -112,6 +113,12 @@ public class Product {
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
     private List<Tag> tags = new ArrayList<>();
+
+
+    @ManyToMany(mappedBy = "products", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<Blog> blogs = new ArrayList<>();
+
 
 
 }

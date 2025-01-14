@@ -49,7 +49,7 @@ public class CaptionCommandServiceImpl implements CaptionCommandService {
             String fileUrl = uploadFile(file, "Failed to upload new file: ");
             caption.setPhotoUrl(fileUrl);
         }
-
+        caption.setTitle(captionDTO.title());
         caption.setText(captionDTO.text());
         caption.setPosition(captionDTO.position());
         caption.setActive(captionDTO.active());

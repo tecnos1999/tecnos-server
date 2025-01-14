@@ -1,6 +1,8 @@
 package com.example.tecnosserver.series.service;
 
 import com.example.tecnosserver.blog.model.Blog;
+import com.example.tecnosserver.category.model.Category;
+import com.example.tecnosserver.category.repo.CategoryRepo;
 import com.example.tecnosserver.series.dto.SeriesDTO;
 import com.example.tecnosserver.series.mapper.SeriesMapper;
 import com.example.tecnosserver.series.model.Series;
@@ -8,6 +10,7 @@ import com.example.tecnosserver.series.repo.SeriesRepo;
 import com.example.tecnosserver.blog.repo.BlogRepo;
 import com.example.tecnosserver.exceptions.exception.NotFoundException;
 import com.example.tecnosserver.intercom.CloudAdapter;
+import com.example.tecnosserver.utils.MainSection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class SeriesCommandServiceImpl implements SeriesCommandService {
     private final BlogRepo blogRepo;
     private final SeriesMapper seriesMapper;
     private final CloudAdapter cloudAdapter;
+    private final CategoryRepo categoryRepo;
 
     @Override
     public void addSeries(SeriesDTO seriesDTO, MultipartFile image) {
@@ -44,6 +49,19 @@ public class SeriesCommandServiceImpl implements SeriesCommandService {
         activateBlogs(series, seriesDTO.blogCodes());
         seriesRepo.save(series);
         log.info("Series '{}' added successfully with code: {}", seriesDTO.name(), series.getCode());
+
+        Optional<Category> category = categoryRepo.findCategoryByName(seriesDTO.name());
+
+        if (category.isEmpty()) {
+            Category newCategory = new Category();
+            newCategory.setMainSection(MainSection.APLICATII_TEHNOLOGIE);
+            newCategory.setName(seriesDTO.name());
+            categoryRepo.saveAndFlush(newCategory);
+
+            log.info("Category '{}' added successfully with name: {}", seriesDTO.name(), newCategory.getName());
+        }
+
+
     }
 
     @Override
@@ -86,6 +104,12 @@ public class SeriesCommandServiceImpl implements SeriesCommandService {
 
         deactivateOldBlogs(series);
         seriesRepo.delete(series);
+
+        Optional<Category> category = categoryRepo.findCategoryByName(series.getName());
+        if (category.isPresent()) {
+            categoryRepo.delete(category.get());
+            log.info("Category '{}' deleted successfully.", series.getName());
+        }
         log.info("Series with code '{}' deleted successfully.", code);
     }
 

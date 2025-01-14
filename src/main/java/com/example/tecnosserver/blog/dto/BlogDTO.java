@@ -14,5 +14,7 @@ public record BlogDTO(
         String seriesCode,
 
         boolean active,
-        List<CaptionDTO> captions
+        List<CaptionDTO> captions ,
+
+        List<String> skuProducts
 ) {}

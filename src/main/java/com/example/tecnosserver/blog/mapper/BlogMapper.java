@@ -4,6 +4,7 @@ import com.example.tecnosserver.blog.dto.BlogDTO;
 import com.example.tecnosserver.blog.model.Blog;
 import com.example.tecnosserver.caption.dto.CaptionDTO;
 import com.example.tecnosserver.caption.model.Caption;
+import com.example.tecnosserver.products.model.Product;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,9 @@ public class BlogMapper {
                 blog.isActive(),
                 blog.getCaptions() != null
                         ? blog.getCaptions().stream().map(this::toCaptionDTO).toList()
+                        : List.of(),
+                blog.getProducts() != null
+                        ? blog.getProducts().stream().map(Product::getSku).toList()
                         : List.of()
         );
     }
@@ -43,6 +47,7 @@ public class BlogMapper {
     private CaptionDTO toCaptionDTO(Caption caption) {
         return new CaptionDTO(
                 caption.getCode(),
+                caption.getTitle(),
                 caption.getText(),
                 caption.getPosition(),
                 caption.getPhotoUrl(),
