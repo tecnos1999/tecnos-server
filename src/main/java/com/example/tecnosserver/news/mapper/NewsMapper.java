@@ -21,6 +21,7 @@ public class NewsMapper {
                 .longDescription(dto.getLongDescription())
                 .tags(dto.getTags().stream().map(tagMapper::fromDTO).toList())
                 .icon(dto.getIcon())
+                .link(dto.getLink())
                 .build();
     }
 
@@ -32,6 +33,7 @@ public class NewsMapper {
                 .longDescription(news.getLongDescription())
                 .tags(news.getTags().stream().map(tagMapper::toDTO).toList())
                 .icon(news.getIcon())
+                .link(news.getLink())
                 .build();
     }
 }

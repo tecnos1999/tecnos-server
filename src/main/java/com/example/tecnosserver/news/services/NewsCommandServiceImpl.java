@@ -56,6 +56,7 @@ public class NewsCommandServiceImpl implements NewsCommandService {
         news.setLongDescription(newsDTO.getLongDescription());
         news.setTags(tags);
         news.setIcon(newsDTO.getIcon());
+        news.setLink(newsDTO.getLink());
 
         newsRepository.save(news);
     }

@@ -20,5 +20,6 @@ public class NewsDTO {
     private String longDescription;
     private List<TagDTO> tags;
     private String icon;
+    private String link;
 }
 

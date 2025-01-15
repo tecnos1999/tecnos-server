@@ -8,10 +8,7 @@ public record InfoCardDTO(
         String code,
         String title,
         String description,
-        List<String> features,
-        boolean active,
-        LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        List<String> features
 ) {
 }
 

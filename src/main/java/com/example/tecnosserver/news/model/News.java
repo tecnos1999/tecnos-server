@@ -47,6 +47,9 @@ public class News {
     @Column(name = "icon", nullable = false)
     private String icon;
 
+    @Column(name="link")
+    private String link;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

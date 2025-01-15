@@ -12,10 +12,7 @@ public class InfoCardMapper {
                 infoCard.getCode(),
                 infoCard.getTitle(),
                 infoCard.getDescription(),
-                infoCard.getFeatures(),
-                infoCard.isActive(),
-                infoCard.getCreatedAt(),
-                infoCard.getUpdatedAt()
+                infoCard.getFeatures()
         );
     }
 
@@ -25,7 +22,6 @@ public class InfoCardMapper {
                 .title(infoCardDTO.title())
                 .description(infoCardDTO.description())
                 .features(infoCardDTO.features())
-                .active(infoCardDTO.active())
                 .build();
     }
 }

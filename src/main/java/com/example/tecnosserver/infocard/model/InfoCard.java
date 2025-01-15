@@ -39,16 +39,6 @@ public class InfoCard {
     @Column(name = "feature", nullable = false)
     private List<String> features = new ArrayList<>();
 
-    @Column(name = "active", nullable = false)
-    private boolean active = true;
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
 
     @PrePersist
     protected void generateCode() {
