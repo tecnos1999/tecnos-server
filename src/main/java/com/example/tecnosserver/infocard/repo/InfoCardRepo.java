@@ -11,5 +11,5 @@ import java.util.Optional;
 public interface InfoCardRepo extends JpaRepository<InfoCard, Long> {
 
     Optional<InfoCard> findByCode(String code);
-    
+
 }
