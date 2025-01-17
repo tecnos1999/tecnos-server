@@ -1,12 +1,15 @@
 package com.example.tecnosserver.page.model;
 
+import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.sections.model.Section;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,6 +36,9 @@ public class Page {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name="link")
+    private String link;
+
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "page_id")
     private List<Section> sections;
@@ -40,5 +46,24 @@ public class Page {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_page_id")
     private List<Page> subPages;
+
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "page_products",
+            joinColumns = @JoinColumn(name = "page_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id")
+    )
+    @JsonManagedReference
+    private List<Product> products = new ArrayList<>();
+    public void addProduct(Product product) {
+        this.products.add(product);
+        product.getPages().add(this);
+    }
+
+    public void removeProduct(Product product) {
+        this.products.remove(product);
+        product.getPages().remove(this);
+    }
 }
 

@@ -1,6 +1,5 @@
 package com.example.tecnosserver.products.mapper;
 
-import com.example.tecnosserver.productimage.model.ProductImage;
 import com.example.tecnosserver.products.dto.ProductDTO;
 import com.example.tecnosserver.products.model.Product;
 import com.example.tecnosserver.tags.model.Tag;
@@ -10,7 +9,6 @@ import java.util.List;
 
 @Component
 public class ProductMapper {
-
 
     public ProductDTO mapProductToDTO(Product product) {
         if (product == null) {
@@ -25,10 +23,10 @@ public class ProductMapper {
                 product.getCategory() != null ? product.getCategory().getName() : null,
                 product.getSubCategory() != null ? product.getSubCategory().getName() : null,
                 product.getImages() != null
-                        ? product.getImages().stream().map(ProductImage::getImageUrl).toList()
+                        ? product.getImages().stream().map(image -> image.getImageUrl()).toList()
                         : List.of(),
-                null,
-                null,
+                null, // imagesToKeep
+                null, // imagesToRemove
                 product.getBroschure(),
                 product.getTehnic(),
                 product.getLinkVideo(),
@@ -39,6 +37,26 @@ public class ProductMapper {
         );
     }
 
+    public Product fromDTO(ProductDTO productDTO) {
+        if (productDTO == null) {
+            return null;
+        }
+
+        Product product = new Product();
+        product.setSku(productDTO.getSku());
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setBroschure(productDTO.getBroschure());
+        product.setTehnic(productDTO.getTehnic());
+        product.setLinkVideo(productDTO.getLinkVideo());
+
+        if (productDTO.getImages() != null) {
+            product.addImages(productDTO.getImages());
+        }
+
+
+        return product;
+    }
 
     public List<ProductDTO> mapProductsToDTOs(List<Product> products) {
         if (products == null || products.isEmpty()) {
@@ -50,4 +68,13 @@ public class ProductMapper {
                 .toList();
     }
 
+    public List<Product> fromDTOs(List<ProductDTO> productDTOs) {
+        if (productDTOs == null || productDTOs.isEmpty()) {
+            return List.of();
+        }
+
+        return productDTOs.stream()
+                .map(this::fromDTO)
+                .toList();
+    }
 }
