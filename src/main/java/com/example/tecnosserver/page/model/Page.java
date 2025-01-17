@@ -1,5 +1,6 @@
 package com.example.tecnosserver.page.model;
 
+import com.example.tecnosserver.sections.model.Section;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,9 +33,9 @@ public class Page {
     @Column(name = "image_url")
     private String imageUrl;
 
-//    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @JoinColumn(name = "page_id")
-//    private List<Section> sections;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "page_id")
+    private List<Section> sections;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_page_id")
