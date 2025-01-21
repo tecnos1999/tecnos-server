@@ -1,13 +1,18 @@
 package com.example.tecnosserver.page.service;
 
-import com.example.tecnosserver.page.dto.PageDTO;
+import com.example.tecnosserver.page.dto.CreatePageDTO;
+import com.example.tecnosserver.page.dto.PageResponseDTO;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 public interface PageCommandService {
 
-    void createPage(PageDTO pageDTO);
+    PageResponseDTO createPage(CreatePageDTO createPageDTO, MultipartFile pageImage, Map<Integer, MultipartFile> sectionImages);
 
-    void updatePage(String slug, PageDTO pageDTO);
+
+    void updatePage(String slug, CreatePageDTO createPageDTO, MultipartFile pageImage, Map<Integer, MultipartFile> sectionImages);
+
 
     void deletePage(String slug);
 }
-

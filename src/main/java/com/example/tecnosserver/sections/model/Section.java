@@ -29,6 +29,9 @@ public class Section {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
+    @Column(name="position")
+    private String position;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "page_id", nullable = false)
     private Page page;

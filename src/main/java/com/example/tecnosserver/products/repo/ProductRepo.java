@@ -28,4 +28,5 @@ public interface ProductRepo extends JpaRepository<Product, Long>{
     Optional<List<Product>> findAllByTagsName(List<String> tagNames);
 
    List<Product> findBySkuIn(List<String> skus);
+
 }
