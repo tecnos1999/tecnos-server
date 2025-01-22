@@ -39,14 +39,18 @@ public class Page {
     @Column(name="link")
     private String link;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "page_id")
+    @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Section> sections;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_page_id")
     private List<Page> subPages;
-
+    public void addSubPage(Page subPage) {
+        if (this.subPages == null) {
+            this.subPages = new ArrayList<>();
+        }
+        this.subPages.add(subPage);
+    }
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JoinTable(
@@ -64,6 +68,12 @@ public class Page {
     public void removeProduct(Product product) {
         this.products.remove(product);
         product.getPages().remove(this);
+    }
+
+    public void clearProducts() {
+        for (Product product : new ArrayList<>(products)) {
+            removeProduct(product);
+        }
     }
 }
 

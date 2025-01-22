@@ -1,6 +1,5 @@
 package com.example.tecnosserver.products.model;
 
-import com.example.tecnosserver.blog.model.Blog;
 import com.example.tecnosserver.category.model.Category;
 import com.example.tecnosserver.itemcategory.model.ItemCategory;
 import com.example.tecnosserver.page.model.Page;
@@ -83,6 +82,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
+
     public void addImage(String imageUrl) {
         if (this.images == null) {
             this.images = new ArrayList<>();
@@ -115,10 +115,6 @@ public class Product {
     )
     private List<Tag> tags = new ArrayList<>();
 
-
-    @ManyToMany(mappedBy = "products", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    @JsonBackReference
-    private List<Blog> blogs = new ArrayList<>();
 
     @ManyToMany(mappedBy = "products", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
     @JsonBackReference
