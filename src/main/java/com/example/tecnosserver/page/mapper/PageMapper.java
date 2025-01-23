@@ -20,8 +20,8 @@ public class PageMapper {
 
     public Page fromCreateDTO(CreatePageDTO dto) {
         return Page.builder()
-                .slug(dto.slug())
                 .title(dto.title())
+                .content(dto.content())
                 .subtitle(dto.subtitle())
                 .link(dto.link())
                 .sections(new ArrayList<>())
@@ -44,8 +44,10 @@ public class PageMapper {
                 .slug(page.getSlug())
                 .title(page.getTitle())
                 .subtitle(page.getSubtitle())
+                .content(page.getContent())
                 .imageUrl(page.getImageUrl())
                 .link(page.getLink())
+                .documentUrl(page.getDocumentUrl())
                 .sections(page.getSections() != null
                         ? page.getSections().stream()
                         .map(this::toSectionDTO)
@@ -53,7 +55,7 @@ public class PageMapper {
                         : new ArrayList<>())
                 .subPages(page.getSubPages() != null
                         ? page.getSubPages().stream()
-                        .map(Page::getSlug)
+                        .map(this::toDTO)
                         .collect(Collectors.toList())
                         : new ArrayList<>())
                 .products(page.getProducts() != null

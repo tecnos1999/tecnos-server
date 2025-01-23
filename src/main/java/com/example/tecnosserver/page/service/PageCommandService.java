@@ -8,10 +8,11 @@ import java.util.Map;
 
 public interface PageCommandService {
 
-    PageResponseDTO createPage(CreatePageDTO createPageDTO, MultipartFile pageImage, Map<Integer, MultipartFile> sectionImages);
+    PageResponseDTO createPage(CreatePageDTO createPageDTO, MultipartFile pageImage,MultipartFile document, Map<String, MultipartFile> sectionImages);
 
 
-    void updatePage(String slug, CreatePageDTO createPageDTO, MultipartFile pageImage, Map<Integer, MultipartFile> sectionImages);
+
+    PageResponseDTO updatePage(String slug, CreatePageDTO createPageDTO, MultipartFile pageImage, MultipartFile document, Map<String, MultipartFile> sectionImagesMap);
 
 
     void deletePage(String slug);

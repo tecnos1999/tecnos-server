@@ -36,9 +36,9 @@ public class PageCommandServiceImpl implements PageCommandService {
     private final CloudAdapter cloudAdapter;
 
     @Override
-    public PageResponseDTO createPage(CreatePageDTO createPageDTO, MultipartFile pageImage, Map<Integer, MultipartFile> sectionImages) {
-        if (pageRepo.existsBySlug(createPageDTO.slug())) {
-            throw new AlreadyExistsException("Page with slug '" + createPageDTO.slug() + "' already exists.");
+    public PageResponseDTO createPage(CreatePageDTO createPageDTO, MultipartFile pageImage,MultipartFile document, Map<String, MultipartFile> sectionImages) {
+        if (pageRepo.existsByTitle(createPageDTO.title())) {
+            throw new AlreadyExistsException("Page with slug '" + createPageDTO.title() + "' already exists.");
         }
 
         Page page = pageMapper.fromCreateDTO(createPageDTO);
@@ -46,6 +46,11 @@ public class PageCommandServiceImpl implements PageCommandService {
         if (pageImage != null && !pageImage.isEmpty()) {
             String pageImageUrl = cloudAdapter.uploadFile(pageImage);
             page.setImageUrl(pageImageUrl);
+        }
+
+        if (document != null && !document.isEmpty()) {
+            String documentUrl = cloudAdapter.uploadFile(document);
+            page.setDocumentUrl(documentUrl);
         }
 
         if (createPageDTO.products() != null && !createPageDTO.products().isEmpty()) {
@@ -66,11 +71,10 @@ public class PageCommandServiceImpl implements PageCommandService {
         if (createPageDTO.sections() != null) {
             List<Section> sections = new ArrayList<>();
 
-            for (int i = 0; i < createPageDTO.sections().size(); i++) {
-                CreateSectionDTO sectionDTO = createPageDTO.sections().get(i);
+            for (CreateSectionDTO sectionDTO : createPageDTO.sections()) {
                 Section section = pageMapper.createSection(sectionDTO, page);
 
-                MultipartFile sectionImage = sectionImages.get(i);
+                MultipartFile sectionImage = sectionImages.get(sectionDTO.title());
                 if (sectionImage != null && !sectionImage.isEmpty()) {
                     String sectionImageUrl = cloudAdapter.uploadFile(sectionImage);
                     section.setImageUrl(sectionImageUrl);
@@ -94,155 +98,175 @@ public class PageCommandServiceImpl implements PageCommandService {
         );
     }
 
+    @Transactional
     @Override
-    public void updatePage(String slug, CreatePageDTO createPageDTO, MultipartFile pageImage, Map<Integer, MultipartFile> sectionImages) {
-        // 1. Find existing page
+    public PageResponseDTO updatePage(
+            String slug,
+            CreatePageDTO createPageDTO,
+            MultipartFile pageImage,
+            MultipartFile document,
+            Map<String, MultipartFile> sectionImagesMap
+    ) {
         Page existingPage = pageRepo.findBySlug(slug)
                 .orElseThrow(() -> new NotFoundException("Page with slug '" + slug + "' not found."));
 
-        // 2. Update basic fields
         existingPage.setTitle(createPageDTO.title());
+        existingPage.setSlug(createPageDTO.title().toLowerCase().replace(" ", "-"));
         existingPage.setSubtitle(createPageDTO.subtitle());
         existingPage.setLink(createPageDTO.link());
+        existingPage.setContent(createPageDTO.content());
 
-        // 3. Handle page image update
         if (pageImage != null && !pageImage.isEmpty()) {
             if (existingPage.getImageUrl() != null) {
-                cloudAdapter.deleteFile(existingPage.getImageUrl());
+                try {
+                    cloudAdapter.deleteFile(existingPage.getImageUrl());
+                } catch (Exception e) {
+                    log.warn("Nu am putut sterge fisierul din cloud: {}", e.getMessage());
+                }
             }
             String newImageUrl = uploadFile(pageImage);
             existingPage.setImageUrl(newImageUrl);
         }
 
-        // 4. Handle products update
+        if (document != null && !document.isEmpty()) {
+            if (existingPage.getDocumentUrl() != null) {
+                try {
+                    cloudAdapter.deleteFile(existingPage.getDocumentUrl());
+                } catch (Exception e) {
+                    log.warn("Nu am putut sterge fisierul din cloud: {}", e.getMessage());
+                }
+            }
+            String newDocumentUrl = uploadFile(document);
+            existingPage.setDocumentUrl(newDocumentUrl);
+        }
+
         if (createPageDTO.products() != null) {
             Set<String> newProductSkus = new HashSet<>(createPageDTO.products());
             Set<String> existingProductSkus = existingPage.getProducts().stream()
                     .map(Product::getSku)
                     .collect(Collectors.toSet());
 
-            // Remove products that are no longer in the DTO
             existingPage.getProducts().removeIf(product -> !newProductSkus.contains(product.getSku()));
 
-            // Add new products
             Set<String> skusToAdd = newProductSkus.stream()
                     .filter(sku -> !existingProductSkus.contains(sku))
                     .collect(Collectors.toSet());
-
             if (!skusToAdd.isEmpty()) {
                 List<Product> newProducts = productRepo.findBySkuIn(new ArrayList<>(skusToAdd));
                 newProducts.forEach(existingPage::addProduct);
             }
         }
 
-        // 5. Handle subpages update
         if (createPageDTO.subPages() != null) {
             Set<String> newPageSlugs = new HashSet<>(createPageDTO.subPages());
             Set<String> existingPageSlugs = existingPage.getSubPages().stream()
                     .map(Page::getSlug)
                     .collect(Collectors.toSet());
 
-            // Remove subpages that are no longer in the DTO
-            existingPage.getSubPages().removeIf(page -> !newPageSlugs.contains(page.getSlug()));
+            existingPage.getSubPages().removeIf(p -> !newPageSlugs.contains(p.getSlug()));
 
-            // Add new subpages
             Set<String> newSlugsToAdd = newPageSlugs.stream()
-                    .filter(pageSlug -> !existingPageSlugs.contains(pageSlug))
+                    .filter(s -> !existingPageSlugs.contains(s))
                     .collect(Collectors.toSet());
-
             if (!newSlugsToAdd.isEmpty()) {
                 Optional<List<Page>> newSubPages = pageRepo.findBySlugIn(new ArrayList<>(newSlugsToAdd));
                 newSubPages.ifPresent(pages -> pages.forEach(existingPage::addSubPage));
             }
         }
 
-        // Save the page to ensure all basic updates are persisted
         Page savedPage = pageRepo.save(existingPage);
 
-        // 6. Handle sections update
         if (createPageDTO.sections() != null) {
-            // Get existing sections
             List<Section> existingSections = sectionRepo.findByPage(savedPage);
 
-            // Create maps for easier comparison
             Map<String, Section> existingSectionMap = existingSections.stream()
-                    .collect(Collectors.toMap(
-                            section -> section.getTitle() + "-" + section.getPosition(),
-                            section -> section
-                    ));
+                    .collect(Collectors.toMap(Section::getTitle, section -> section));
 
             Map<String, CreateSectionDTO> newSectionMap = createPageDTO.sections().stream()
-                    .collect(Collectors.toMap(
-                            section -> section.title() + "-" + section.position(),
-                            section -> section
-                    ));
+                    .collect(Collectors.toMap(CreateSectionDTO::title, dto -> dto));
 
-            // Track sections to update, create, and delete
-            List<Section> sectionsToUpdate = new ArrayList<>();
+            List<Section> sectionsToUpdateOrCreate = new ArrayList<>();
             List<Section> sectionsToDelete = new ArrayList<>();
 
-            // Find sections to update or delete
             for (Section existingSection : existingSections) {
-                String key = existingSection.getTitle() + "-" + existingSection.getPosition();
-                if (newSectionMap.containsKey(key)) {
-                    // Update existing section
-                    CreateSectionDTO sectionDTO = newSectionMap.get(key);
-                    existingSection.setContent(sectionDTO.content());
-                    sectionsToUpdate.add(existingSection);
+                String titleKey = existingSection.getTitle();
+                if (newSectionMap.containsKey(titleKey)) {
+                    CreateSectionDTO dto = newSectionMap.get(titleKey);
+                    existingSection.setContent(dto.content());
+                    sectionsToUpdateOrCreate.add(existingSection);
                 } else {
-                    // Section no longer exists in DTO
                     sectionsToDelete.add(existingSection);
                 }
             }
 
-            // Delete removed sections and their images
-            for (Section section : sectionsToDelete) {
-                if (section.getImageUrl() != null) {
-                    cloudAdapter.deleteFile(section.getImageUrl());
+            for (Section sectionToDelete : sectionsToDelete) {
+                savedPage.removeSection(sectionToDelete);
+
+                if (sectionToDelete.getImageUrl() != null) {
+                    try {
+                        cloudAdapter.deleteFile(sectionToDelete.getImageUrl());
+                    } catch (Exception e) {
+                        log.warn("Could not delete section file from cloud: {}", e.getMessage());
+                    }
                 }
-                sectionRepo.delete(section);
+
+                sectionToDelete.removePage();
+
+                sectionRepo.delete(sectionToDelete);
             }
 
-            // Create new sections
-            for (int i = 0; i < createPageDTO.sections().size(); i++) {
-                CreateSectionDTO sectionDTO = createPageDTO.sections().get(i);
-                String key = sectionDTO.title() + "-" + sectionDTO.position();
+            pageRepo.save(savedPage);
+            sectionRepo.flush();
 
-                if (!existingSectionMap.containsKey(key)) {
-                    // Create new section
+            for (CreateSectionDTO dto : createPageDTO.sections()) {
+                String titleKey = dto.title();
+                if (!existingSectionMap.containsKey(titleKey)) {
                     Section newSection = Section.builder()
-                            .title(sectionDTO.title())
-                            .content(sectionDTO.content())
-                            .position(sectionDTO.position())
+                            .title(dto.title())
+                            .content(dto.content())
                             .page(savedPage)
                             .build();
 
-                    // Handle section image if provided
-                    MultipartFile sectionImage = sectionImages.get(i);
-                    if (sectionImage != null && !sectionImage.isEmpty()) {
-                        String imageUrl = uploadFile(sectionImage);
-                        newSection.setImageUrl(imageUrl);
-                    }
-
-                    sectionsToUpdate.add(newSection);
-                } else {
-                    // Update image for existing section if provided
-                    Section existingSection = existingSectionMap.get(key);
-                    MultipartFile sectionImage = sectionImages.get(i);
-                    if (sectionImage != null && !sectionImage.isEmpty()) {
-                        if (existingSection.getImageUrl() != null) {
-                            cloudAdapter.deleteFile(existingSection.getImageUrl());
+                    if (sectionImagesMap.containsKey(titleKey)) {
+                        MultipartFile imageFile = sectionImagesMap.get(titleKey);
+                        if (imageFile != null && !imageFile.isEmpty()) {
+                            String imageUrl = uploadFile(imageFile);
+                            newSection.setImageUrl(imageUrl);
                         }
-                        String imageUrl = uploadFile(sectionImage);
-                        existingSection.setImageUrl(imageUrl);
+                    }
+                    sectionsToUpdateOrCreate.add(newSection);
+                } else {
+                    Section existingSection = existingSectionMap.get(titleKey);
+                    if (sectionImagesMap.containsKey(titleKey)) {
+                        MultipartFile imageFile = sectionImagesMap.get(titleKey);
+                        if (imageFile != null && !imageFile.isEmpty()) {
+                            if (existingSection.getImageUrl() != null) {
+                                try {
+                                    cloudAdapter.deleteFile(existingSection.getImageUrl());
+                                } catch (Exception e) {
+                                    log.warn("Could not delete old section file from cloud: {}", e.getMessage());
+                                }
+                            }
+                            String newImageUrl = uploadFile(imageFile);
+                            existingSection.setImageUrl(newImageUrl);
+                        }
                     }
                 }
             }
 
-            // Save all updated and new sections
-            sectionRepo.saveAll(sectionsToUpdate);
+            sectionRepo.saveAll(sectionsToUpdateOrCreate);
         }
+
+        return new PageResponseDTO(
+                savedPage.getId(),
+                savedPage.getSlug(),
+                "Page updated successfully with " +
+                        (savedPage.getSections() != null ? savedPage.getSections().size() : 0) +
+                        " sections"
+        );
     }
+
+
 
     @Override
     public void deletePage(String slug) {
@@ -252,6 +276,10 @@ public class PageCommandServiceImpl implements PageCommandService {
         try {
             if (page.getImageUrl() != null) {
                 cloudAdapter.deleteFile(page.getImageUrl());
+            }
+
+            if (page.getDocumentUrl() != null) {
+                cloudAdapter.deleteFile(page.getDocumentUrl());
             }
 
             if (page.getSections() != null) {

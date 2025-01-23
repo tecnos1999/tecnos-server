@@ -35,5 +35,12 @@ public class Section {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "page_id", nullable = false)
     private Page page;
+
+    public void removePage() {
+        if (this.page != null) {
+            this.page.getSections().remove(this);
+            this.page = null;
+        }
+    }
 }
 

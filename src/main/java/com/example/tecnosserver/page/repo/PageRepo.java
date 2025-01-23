@@ -13,7 +13,11 @@ public interface PageRepo extends JpaRepository<Page, Long> {
 
     @EntityGraph(attributePaths = {"sections"})
     Optional<Page> findBySlug(String slug);
-    boolean existsBySlug(String slug);
+
+    @EntityGraph(attributePaths = {"sections"})
+    Optional<Page> findByTitle(String title);
+
+    boolean existsByTitle(String title);
 
     @EntityGraph(attributePaths = {"sections"})
     Optional<List<Page>> findBySlugIn(List<String> slugs);

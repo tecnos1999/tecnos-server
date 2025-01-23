@@ -12,13 +12,16 @@ public record PageDTO(
         String slug,
         String title,
         String subtitle,
+
+        String content,
         String imageUrl,
         String link,
+
+        String documentUrl,
         List<SectionDTO> sections,
-        List<String> subPages,
-        List<String> products,
-        String createdAt,
-        String updatedAt
+        List<PageDTO> subPages,
+        List<String> products
+
 ) {
 
 }

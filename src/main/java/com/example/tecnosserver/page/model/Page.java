@@ -27,11 +27,14 @@ public class Page {
     @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "title", nullable = false)
+    @Column(name = "title", nullable = false , unique = true)
     private String title;
 
     @Column(name = "subtitle")
     private String subtitle;
+
+    @Column(name="content", columnDefinition = "TEXT")
+    private String content;
 
     @Column(name = "image_url")
     private String imageUrl;
@@ -39,8 +42,15 @@ public class Page {
     @Column(name="link")
     private String link;
 
+    @Column(name="document_url")
+    private String documentUrl;
+
     @OneToMany(mappedBy = "page", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Section> sections;
+    public void removeSection(Section section) {
+        sections.remove(section);
+        section.setPage(null);
+    }
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_page_id")
@@ -75,5 +85,13 @@ public class Page {
             removeProduct(product);
         }
     }
+
+    @PrePersist
+    public void prePersist() {
+        if (slug == null) {
+            slug = title.toLowerCase().replace(" ", "-");
+        }
+    }
+
 }
 

@@ -1,18 +1,24 @@
 package com.example.tecnosserver.page.web;
 
+import com.example.tecnosserver.exceptions.exception.AppException;
 import com.example.tecnosserver.page.dto.CreatePageDTO;
 import com.example.tecnosserver.page.dto.PageDTO;
 import com.example.tecnosserver.page.dto.PageResponseDTO;
 import com.example.tecnosserver.page.service.PageCommandService;
 import com.example.tecnosserver.page.service.PageQueryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,47 +54,71 @@ public class PageControllerApi {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PageResponseDTO> createPage(
             @RequestPart("pageDTO") String pageDTOJson,
+            @RequestPart(value="document", required = false) MultipartFile document,
             @RequestPart(value = "pageImage", required = false) MultipartFile pageImage,
-            @RequestPart(value = "sectionImages", required = false) MultipartFile[] sectionImages) {
+            HttpServletRequest request) {
+
         try {
             CreatePageDTO createPageDTO = objectMapper.readValue(pageDTOJson, CreatePageDTO.class);
+            Map<String, MultipartFile> sectionImagesMap = new HashMap<>();
 
-            Map<Integer, MultipartFile> sectionImagesMap = new HashMap<>();
-            if (sectionImages != null) {
-                for (int i = 0; i < sectionImages.length; i++) {
-                    sectionImagesMap.put(i, sectionImages[i]);
+            if (request instanceof MultipartHttpServletRequest multipartRequest) {
+                Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
+                for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
+                    String key = entry.getKey();
+
+                    if (key.startsWith("sectionImages[") && key.endsWith("]")) {
+                        String title = key.substring(14, key.length() - 1);
+                        title = URLDecoder.decode(title, StandardCharsets.UTF_8);
+                        sectionImagesMap.put(title, entry.getValue());
+
+                    }
                 }
             }
 
-            PageResponseDTO response = pageCommandService.createPage(createPageDTO, pageImage, sectionImagesMap);
+
+            PageResponseDTO response = pageCommandService.createPage(createPageDTO, pageImage,document, sectionImagesMap);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to create page: " + e.getMessage());
+            throw new AppException("Failed to create page: " + e.getMessage());
         }
     }
 
+
     @PutMapping(value = "/update/{slug}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> updatePage(
+    public ResponseEntity<PageResponseDTO> updatePage(
             @PathVariable String slug,
             @RequestPart("pageDTO") String pageDTOJson,
+            @RequestPart(value="document", required = false) MultipartFile document,
             @RequestPart(value = "pageImage", required = false) MultipartFile pageImage,
-            @RequestPart(value = "sectionImages", required = false) MultipartFile[] sectionImages) {
+            HttpServletRequest request
+    ) {
         try {
             CreatePageDTO createPageDTO = objectMapper.readValue(pageDTOJson, CreatePageDTO.class);
 
-            Map<Integer, MultipartFile> sectionImagesMap = new HashMap<>();
-            if (sectionImages != null) {
-                for (int i = 0; i < sectionImages.length; i++) {
-                    sectionImagesMap.put(i, sectionImages[i]);
+            Map<String, MultipartFile> sectionImagesMap = new HashMap<>();
+
+            if (request instanceof MultipartHttpServletRequest multipartRequest) {
+                Map<String, MultipartFile> fileMap = multipartRequest.getFileMap();
+
+                for (Map.Entry<String, MultipartFile> entry : fileMap.entrySet()) {
+                    String key = entry.getKey();
+                    if (key.startsWith("sectionImages[") && key.endsWith("]")) {
+                        String title = key.substring(14, key.length() - 1);
+                        title = URLDecoder.decode(title, StandardCharsets.UTF_8);
+                        sectionImagesMap.put(title, entry.getValue());
+                    }
                 }
             }
 
-            pageCommandService.updatePage(slug, createPageDTO, pageImage, sectionImagesMap);
-            return ResponseEntity.ok("Page updated successfully");
+            PageResponseDTO response = pageCommandService.updatePage(slug, createPageDTO, pageImage,document, sectionImagesMap);
+            return ResponseEntity.ok(response);
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to update page: " + e.getMessage());
+            throw new RuntimeException("Failed to update page: " + e.getMessage(), e);
         }
     }
+
 
     @DeleteMapping("/delete/{slug}")
     public ResponseEntity<String> deletePage(@PathVariable String slug) {

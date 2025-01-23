@@ -57,6 +57,19 @@ public class PageQueryServiceImpl implements PageQueryService {
         }
     }
 
+
+    @Override
+    public Optional<PageDTO> findPageByName(String name) {
+        log.info("Searching for page with name: {}", name);
+        try {
+            return pageRepo.findByTitle(name)
+                    .map(pageMapper::toDTO);
+        } catch (Exception e) {
+            log.error("Error while fetching page with name {}: {}", name, e.getMessage(), e);
+            throw new AppException("Failed to retrieve page: " + e.getMessage());
+        }
+    }
+
     @Override
     public List<PageDTO> findPagesBySlugList(List<String> slugs) {
         log.info("Searching for pages with slugs: {}", slugs);
