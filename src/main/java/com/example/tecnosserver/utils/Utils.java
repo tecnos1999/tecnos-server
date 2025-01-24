@@ -41,6 +41,7 @@ public class Utils {
             "/server/api/v1/series/getSeriesByName**" , "/server/api/v1/product/sku**",
             "server/api/v1/infocard", "server/api/v1/infocard/{code}" ,
             "/server/api/v1/pages", "/server/api/v1/pages/{slug}", "/server/api/v1/pages/by-slugs",
+            "/server/api/v1/email/send",
 
     };
 }

@@ -15,6 +15,17 @@ spring:
     username: root
     password: Decembrie2001
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: pathpilot116@gmail.com
+    password: rpivmafhzdvbcqgs
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   jwt:
     secretKey: asdasdasdasdasd123344asdasdasdasdasasd12321332sadas
     tokenPrefix: Bearer
